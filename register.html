@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register</title>
+
+<style>
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(-45deg,#0f172a,#1e3a8a,#0ea5e9,#0f172a);
+    background-size:400% 400%;
+    animation:bgMove 10s infinite;
+    font-family:Arial;
+}
+
+@keyframes bgMove{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+
+.container{
+    width:340px;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:8px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+}
+
+.alt{
+    background:transparent;
+    border:2px solid #2563eb;
+    color:#2563eb;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Register</h2>
+
+<input type="text" id="name" placeholder="Name">
+<input type="email" id="email" placeholder="Email (e.g. 01fe24bcs136@kletech.ac.in)">
+<input type="password" id="password" placeholder="Password">
+<input type="password" id="confirm" placeholder="Confirm Password">
+
+<button onclick="register()">Register</button>
+
+<button class="alt" onclick="goLogin()">Already have account? Login</button>
+
+</div>
+
+<script>
+function goLogin(){
+    window.location.href = "login.html";
+}
+
+function register(){
+
+    let name = document.getElementById("name").value.trim();
+    let email = document.getElementById("email").value.trim();
+    let password = document.getElementById("password").value.trim();
+    let confirm = document.getElementById("confirm").value.trim();
+
+    if(name===""||email===""||password===""||confirm===""){
+        alert("All fields required");
+        return;
+    }
+
+    // 🔥 EMAIL VALIDATION (KLETECH FORMAT)
+    let emailPattern = /^[0-9]{2}fe[0-9]{2}[a-z]{3}[0-9]{3}@kletech\.ac\.in$/;
+
+    if(!email.match(emailPattern)){
+        alert("Use format: 01fe24bcs136@kletech.ac.in");
+        return;
+    }
+
+    if(password !== confirm){
+        alert("Passwords do not match");
+        return;
+    }
+
+    let user = {name,email,password};
+    localStorage.setItem("user", JSON.stringify(user));
+
+    alert("Registered Successfully ✅");
+
+    window.location.href="login.html";
+}
+</script>
+
+</body>
+</html>

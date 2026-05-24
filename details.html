@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Item Details</title>
+
+<style>
+body{
+  font-family:'Segoe UI',sans-serif;
+  margin:0;
+  background:#f8fafc;
+}
+
+/* HEADER */
+.header{
+  background:#49b8d7;
+  color:white;
+  padding:18px;
+  text-align:center;
+  font-size:24px;
+  font-weight:700;
+  position:relative;
+}
+
+.back-btn{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:24px;
+  cursor:pointer;
+}
+
+/* CONTAINER */
+.container{
+  max-width:550px;
+  margin:auto;
+  padding:20px;
+}
+
+/* IMAGE */
+.image-box{
+  display:flex;
+  justify-content:center;
+}
+
+.image-box img{
+  width:100%;
+  max-width:360px;
+  height:360px;
+  object-fit:cover;
+  border-radius:18px;
+  background:white;
+  box-shadow:0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* CARD */
+.card{
+  background:white;
+  margin-top:25px;
+  border-radius:18px;
+  padding:25px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* TITLE */
+h3{
+  text-align:center;
+  margin-bottom:25px;
+  font-size:28px;
+}
+
+/* INFO */
+.info{
+  margin-bottom:15px;
+  padding:14px;
+  border-radius:10px;
+  background:#f9fafb;
+}
+
+.label{
+  font-size:14px;
+  color:#6b7280;
+}
+
+.value{
+  font-size:18px;
+  font-weight:600;
+}
+
+/* BUTTONS */
+.btns{
+  display:flex;
+  gap:15px;
+  margin-top:25px;
+}
+
+.btn{
+  flex:1;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.call{
+  background:#16a34a;
+}
+
+.msg{
+  background:#2563eb;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <span class="back-btn" onclick="goBack()">←</span>
+  Item Details
+</div>
+
+<div class="container">
+
+  <div class="image-box">
+    <img id="img">
+  </div>
+
+  <div class="card">
+
+    <h3 id="title"></h3>
+
+    <div class="info">
+      <div class="label">📍 Location</div>
+      <div class="value" id="location"></div>
+    </div>
+
+    <div class="info">
+      <div class="label">📅 Date</div>
+      <div class="value" id="date"></div>
+    </div>
+
+    <div class="info">
+      <div class="label">📂 Category</div>
+      <div class="value" id="category"></div>
+    </div>
+
+    <div class="info">
+      <div class="label">👤 Posted By</div>
+      <div class="value" id="person"></div>
+    </div>
+
+    <div class="info">
+      <div class="label">📧 Email</div>
+      <div class="value" id="email"></div>
+    </div>
+
+    <div class="info">
+      <div class="label">📞 Phone</div>
+      <div class="value" id="phone"></div>
+    </div>
+
+    <div class="info">
+      <div class="label">💰 Reward</div>
+      <div class="value">₹ <span id="reward"></span></div>
+    </div>
+
+    <div class="info">
+      <div class="label">📝 Description</div>
+      <div class="value" id="desc"></div>
+    </div>
+
+    <div class="btns">
+
+      <button class="btn call" onclick="callUser()">
+        📞 Call
+      </button>
+
+      <button class="btn msg" onclick="smsUser()">
+        💬 Message
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+/* BACK */
+function goBack(){
+  window.history.back();
+}
+
+/* LOAD ITEM */
+let selected =
+  JSON.parse(localStorage.getItem("selectedItem"));
+
+let allItems =
+  JSON.parse(localStorage.getItem("foundItems")) || [];
+
+let item =
+  allItems.find(i => i.id === selected?.id);
+
+if(!item){
+  item = selected;
+}
+
+/* DISPLAY */
+if(item){
+
+  document.getElementById("img").src =
+    item.image || "https://via.placeholder.com/400";
+
+  document.getElementById("title").innerText =
+    item.title || "";
+
+  document.getElementById("location").innerText =
+    item.location || "";
+
+  document.getElementById("date").innerText =
+    item.date || "";
+
+  document.getElementById("category").innerText =
+    item.category || "";
+
+  document.getElementById("person").innerText =
+    item.name || "";
+
+  document.getElementById("email").innerText =
+    item.email || "";
+
+  document.getElementById("phone").innerText =
+    item.contact || "";
+
+  document.getElementById("reward").innerText =
+    item.reward || "0";
+
+  document.getElementById("desc").innerText =
+    item.description || "";
+
+}
+
+function callUser(){
+
+  if(!item) return;
+
+  let approved =
+    localStorage.getItem("claimApproved_" + item.id);
+
+  // ❌ NOT APPROVED → GO TO CLAIM PAGE
+  if(!approved){
+    localStorage.setItem("selectedItem", JSON.stringify(item));
+    window.location.href = "claim-request.html";
+    return;
+  }
+
+  // ✅ APPROVED → ONLY MOBILE CALL
+  const isMobile =
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if(isMobile){
+    window.location.href = `tel:${item.contact}`;
+  } else {
+    alert("📞 Call feature is only available on mobile devices.");
+  }
+}
+/* 💬 MESSAGE */
+function smsUser(){
+
+  if(!item) return;
+
+  let approved =
+    localStorage.getItem(
+      "claimApproved_" + item.id
+    );
+
+  // FIRST TIME → CLAIM PAGE
+  if(!approved){
+
+    localStorage.setItem(
+      "selectedItem",
+      JSON.stringify(item)
+    );
+
+    window.location.href =
+      "claim-request.html";
+
+    return;
+  }
+
+  // DIRECT WHATSAPP
+  let msg = encodeURIComponent(
+    "Hello regarding your found item: " +
+    item.title
+  );
+
+  window.open(
+    `https://wa.me/91${item.contact}?text=${msg}`,
+    "_blank"
+  );
+}
+function goHome(){
+  window.location.href = "home.html";
+}
+
+</script>
+
+</body>
+</html>

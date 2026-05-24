@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Lost Item</title>
+
+<style>
+body{
+  font-family:Segoe UI;
+  margin:0;
+  background:#f8fafc;
+}
+
+header{
+  background:#49b8d7;
+  color:white;
+  padding:14px;
+  text-align:center;
+  font-size:20px;
+  position:relative;
+}
+
+.back-btn{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:22px;
+  cursor:pointer;
+}
+
+.container{
+  max-width:600px;
+  margin:30px auto;
+  background:white;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+
+input, select, textarea{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:1px solid #ccc;
+  border-radius:8px;
+}
+
+.invalid{ border:2px solid red; }
+.valid{ border:2px solid green; }
+
+.error{
+  color:red;
+  font-size:12px;
+  display:none;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+button[type="submit"]{
+  background:#49b8d7;
+  color:white;
+}
+
+img{
+  width:100%;
+  max-height:200px;
+  display:none;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<span class="back-btn" onclick="goBack()">←</span>
+Report Lost Item
+</header>
+
+<div class="container">
+
+<form id="lostForm">
+
+<input type="text" id="name" placeholder="Your Name">
+<div class="error" id="nameError"></div>
+
+<input type="email" id="email" placeholder="Email">
+<div class="error" id="emailError"></div>
+
+<input type="text" id="contact" placeholder="Contact Number">
+<div class="error" id="contactError"></div>
+
+<input type="text" id="title" placeholder="Lost Item Title">
+<div class="error" id="titleError"></div>
+
+<select id="category">
+<option value="">Select Category</option>
+<option>Electronics</option>
+<option>Accessories</option>
+<option>Books</option>
+<option>Documents</option>
+<option>Clothing</option>
+<option>Others</option>
+</select>
+<div class="error" id="categoryError"></div>
+
+<input type="number" id="reward" placeholder="Reward (optional)">
+
+<input type="date" id="date">
+<div class="error" id="dateError"></div>
+
+<input type="text" id="location" placeholder="Last Seen Location">
+<div class="error" id="locationError"></div>
+
+<textarea id="description" placeholder="Description"></textarea>
+<div class="error" id="descError"></div>
+
+<input type="file" id="image" accept="image/*">
+<div class="error" id="imageError"></div>
+
+<img id="preview">
+
+<button type="submit">Submit</button>
+
+</form>
+</div>
+
+<script>
+
+/* ELEMENTS */
+const form = document.getElementById("lostForm");
+
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const contactInput = document.getElementById("contact");
+const titleInput = document.getElementById("title");
+const categoryInput = document.getElementById("category");
+const dateInput = document.getElementById("date");
+const locationInput = document.getElementById("location");
+const descInput = document.getElementById("description");
+const imageInput = document.getElementById("image");
+const preview = document.getElementById("preview");
+
+/* BACK */
+function goBack(){
+  window.location.href="home.html";
+}
+
+/* IMAGE */
+imageInput.addEventListener("change",function(){
+  let file=this.files[0];
+  if(file){
+    let reader=new FileReader();
+    reader.onload=e=>{
+      preview.src=e.target.result;
+      preview.style.display="block";
+    }
+    reader.readAsDataURL(file);
+  }
+});
+
+/* ERROR */
+function setError(input,id,msg){
+  input.classList.add("invalid");
+  input.classList.remove("valid");
+  document.getElementById(id).innerText=msg;
+  document.getElementById(id).style.display="block";
+}
+
+function setValid(input,id){
+  input.classList.remove("invalid");
+  input.classList.add("valid");
+  document.getElementById(id).style.display="none";
+}
+
+/* VALIDATIONS */
+function validateName(){
+  let v=nameInput.value.trim();
+  if(v.length>=3 && /^[A-Za-z ]+$/.test(v)){
+    setValid(nameInput,"nameError"); return true;
+  }
+  setError(nameInput,"nameError","Min 3 letters"); return false;
+}
+
+function validateEmail(){
+  let v=emailInput.value.trim();
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){
+    setValid(emailInput,"emailError"); return true;
+  }
+  setError(emailInput,"emailError","Invalid email"); return false;
+}
+
+function validatePhone(){
+  let v=contactInput.value.trim();
+  if(/^[0-9]{10}$/.test(v)){
+    setValid(contactInput,"contactError"); return true;
+  }
+  setError(contactInput,"contactError","10 digits only"); return false;
+}
+
+function validateTitle(){
+  let v=titleInput.value.trim();
+  if(v.length>=3){
+    setValid(titleInput,"titleError"); return true;
+  }
+  setError(titleInput,"titleError","Min 3 chars"); return false;
+}
+
+function validateCategory(){
+  if(categoryInput.value!==""){
+    setValid(categoryInput,"categoryError"); return true;
+  }
+  setError(categoryInput,"categoryError","Select category"); return false;
+}
+
+function validateDate(){
+  if(!dateInput.value){
+    setError(dateInput,"dateError","Select date"); return false;
+  }
+
+  let selected=new Date(dateInput.value);
+  let today=new Date();
+  today.setHours(0,0,0,0);
+
+  let diff=(today-selected)/(1000*60*60*24);
+
+  if(selected>today){
+    setError(dateInput,"dateError","Future not allowed"); return false;
+  }
+  if(diff>5){
+    setError(dateInput,"dateError","Only last 5 days allowed"); return false;
+  }
+
+  setValid(dateInput,"dateError"); return true;
+}
+
+function validateLocation(){
+  let v=locationInput.value.trim();
+  if(v.length>=3){
+    setValid(locationInput,"locationError"); return true;
+  }
+  setError(locationInput,"locationError","Min 3 chars"); return false;
+}
+
+function validateDesc(){
+  let v=descInput.value.trim();
+  if(v==="" || v.length>=5){
+    setValid(descInput,"descError"); return true;
+  }
+  setError(descInput,"descError","Min 5 chars"); return false;
+}
+
+function validateImage(){
+  let file=imageInput.files[0];
+  if(!file || file.type.startsWith("image/")){
+    setValid(imageInput,"imageError"); return true;
+  }
+  setError(imageInput,"imageError","Only images allowed"); return false;
+}
+
+/* LIVE */
+nameInput.oninput=validateName;
+emailInput.oninput=validateEmail;
+contactInput.oninput=validatePhone;
+titleInput.oninput=validateTitle;
+categoryInput.onchange=validateCategory;
+dateInput.onchange=validateDate;
+locationInput.oninput=validateLocation;
+descInput.oninput=validateDesc;
+imageInput.onchange=validateImage;
+
+/* SCROLL */
+function scrollToError(){
+  let first=document.querySelector(".invalid");
+  if(first){
+    first.scrollIntoView({behavior:"smooth",block:"center"});
+  }
+}
+
+/* LOAD EDIT */
+window.onload=function(){
+  let editData=JSON.parse(localStorage.getItem("editLostItem"));
+
+  if(editData){
+    nameInput.value=editData.name;
+    emailInput.value=editData.email;
+    contactInput.value=editData.contact;
+    titleInput.value=editData.title;
+    categoryInput.value=editData.category;
+    dateInput.value=editData.date;
+    locationInput.value=editData.location;
+    descInput.value=editData.description;
+
+    if(editData.image){
+      preview.src=editData.image;
+      preview.style.display="block";
+    }
+  }
+};
+
+/* SUBMIT */
+  form.addEventListener("submit", function(e){
+  e.preventDefault();
+
+  let ok =
+    validateName() &&
+    validateEmail() &&
+    validatePhone() &&
+    validateTitle() &&
+    validateCategory() &&
+    validateDate() &&
+    validateLocation() &&
+    validateDesc() &&
+    validateImage();
+
+  if(!ok){
+    scrollToError();
+    return;
+  }
+
+  let file = imageInput.files[0];
+
+  function saveItem(imageData){
+
+    let items = JSON.parse(localStorage.getItem("lostItems")) || [];
+    let editData = JSON.parse(localStorage.getItem("editLostItem"));
+
+    let verificationCode = "KLE-" + Math.floor(100000 + Math.random() * 900000);
+
+    if(editData){
+      let index = items.findIndex(i => i.id === editData.id);
+
+      if(index !== -1){
+        items[index] = {
+          ...items[index],
+          name: nameInput.value,
+          email: emailInput.value,
+          contact: contactInput.value,
+          title: titleInput.value,
+          category: categoryInput.value,
+          reward: reward.value,
+          date: dateInput.value,
+          location: locationInput.value,
+          description: descInput.value,
+          image: imageData || editData.image,
+          verificationCode: editData.verificationCode || verificationCode
+        };
+      }
+
+      localStorage.removeItem("editLostItem");
+
+    } else {
+
+      items.unshift({
+        id: Date.now(),
+        name: nameInput.value,
+        email: emailInput.value,
+        contact: contactInput.value,
+        title: titleInput.value,
+        category: categoryInput.value,
+        reward: reward.value,
+        date: dateInput.value,
+        location: locationInput.value,
+        description: descInput.value,
+        image: imageData,
+        verificationCode: verificationCode
+      });
+
+      // ✅ Show code AFTER saving
+      localStorage.setItem("lostItems", JSON.stringify(items));
+
+      setTimeout(() => {
+        alert("✅ Item submitted!\n\nYour Verification Code: " 
+              + verificationCode + 
+              "\n\nKeep it safe!");
+
+        window.location.href = "Lost.html";
+      }, 100);
+
+      return; // ✅ STOP here after new item
+    }
+
+    // ✅ For edit case
+    localStorage.setItem("lostItems", JSON.stringify(items));
+    window.location.href = "Lost.html";
+  }
+
+  // ✅ FILE HANDLING (OUTSIDE saveItem)
+  if(file){
+    let reader = new FileReader();
+    reader.onload = e => saveItem(e.target.result);
+    reader.readAsDataURL(file);
+  } else {
+    saveItem("");
+  }
+
+});
+</script>
+
+</body>
+</html>

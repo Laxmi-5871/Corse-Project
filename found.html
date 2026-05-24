@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Found Items</title>
+
+<style>
+body{
+  font-family:Segoe UI;
+  margin:0;
+  background:#f8fafc;
+}
+
+header{
+  background:#49b8d7;
+  color:white;
+  padding:14px;
+  text-align:center;
+  font-size:20px;
+  font-weight:600;
+  position:relative;
+}
+
+.back-btn{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:22px;
+  cursor:pointer;
+}
+
+.add-btn{
+  display:block;
+  margin:20px auto;
+  padding:10px 20px;
+  border:none;
+  background:#49b8d7;
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.add-btn:hover{
+  background:#1d4ed8;
+}
+
+.container{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:20px;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  border-radius:16px;
+  padding:15px;
+  position:relative;
+  color:#111827;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+
+.tag{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#49b8d7;
+  color:white;
+  padding:5px 10px;
+  border-radius:6px;
+  font-size:12px;
+}
+
+.menu-btn{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:#f3f4f6;
+  padding:8px;
+  border-radius:50%;
+  cursor:pointer;
+}
+
+.card img{
+  width:100%;
+  height:180px;
+  object-fit:contain;
+  margin-top:20px;
+}
+
+.card h3{
+  margin:10px 0 5px;
+}
+
+.info{
+  font-size:14px;
+  color:#6b7280;
+}
+
+.view-btn{
+  background:#49b8d7;
+  color:white;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  margin-top:10px;
+  width:100%;
+  cursor:pointer;
+}
+
+.dropdown{
+  position:absolute;
+  top:40px;
+  right:10px;
+  background:white;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  display:none;
+  flex-direction:column;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <span class="back-btn" onclick="goBack()">←</span>
+  Found Items
+</header>
+
+<button class="add-btn" onclick="window.location.href='report-found.html'">
+  ➕ Report Found Item
+</button>
+
+<div class="container" id="container"></div>
+
+<script>
+
+function loadItems(){
+
+  let allItems = JSON.parse(localStorage.getItem("foundItems")) || [];
+  let container = document.getElementById("container");
+  container.innerHTML = "";
+
+  if(allItems.length === 0){
+    container.innerHTML = "<h3 style='padding:20px'>No found items</h3>";
+    return;
+  }
+
+  let displayItems = [...allItems].reverse();
+
+  displayItems.forEach(item => {
+
+    let card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="tag">FOUND</div>
+
+      <div class="menu-btn">⋮</div>
+
+      <img src="${item.image || 'https://via.placeholder.com/300'}">
+
+      <h3>${item.title}</h3>
+
+      <div class="info">📁 ${item.category}</div>
+      <div class="info">📍 ${item.location}</div>
+      <div class="info">📅 ${item.date || ""}</div>
+
+      <button class="view-btn">👁 View</button>
+
+      <!-- ✅ DROPDOWN -->
+      <div class="dropdown">
+        <button class="edit">✏️ Edit</button>
+        <button class="delete">🗑 Delete</button>
+        <button class="like">
+          ${item.liked ? "❤️ Unlike" : "🤍 Like"}
+        </button>
+      </div>
+    `;
+
+    let menuBtn = card.querySelector(".menu-btn");
+    let dropdown = card.querySelector(".dropdown");
+
+    // ✅ Toggle dropdown
+    menuBtn.onclick = (e) => {
+      e.stopPropagation();
+      document.querySelectorAll(".dropdown").forEach(d => d.style.display="none");
+      dropdown.style.display = "flex";
+    };
+
+    // ✅ View
+    card.querySelector(".view-btn").onclick = () => {
+      localStorage.setItem("selectedItem", JSON.stringify(item));
+      window.location.href = "details.html";
+    };
+
+    // ✅ Find real index (important after reverse)
+    let realIndex = allItems.findIndex(i => i.id === item.id);
+
+    // ✅ Delete
+    card.querySelector(".delete").onclick = (e) => {
+      e.stopPropagation();
+      if(confirm("Delete this item?")){
+        allItems.splice(realIndex,1);
+        localStorage.setItem("foundItems", JSON.stringify(allItems));
+        loadItems();
+      }
+    };
+
+    // ✅ Edit
+    card.querySelector(".edit").onclick = (e) => {
+      e.stopPropagation();
+      localStorage.setItem("editItem", JSON.stringify(item));
+      window.location.href = "report-found.html";
+    };
+
+    // ✅ Like
+    card.querySelector(".like").onclick = (e) => {
+      e.stopPropagation();
+      allItems[realIndex].liked = !allItems[realIndex].liked;
+      localStorage.setItem("foundItems", JSON.stringify(allItems));
+      loadItems();
+    };
+
+    container.appendChild(card);
+  });
+}
+
+/* CLOSE dropdown when clicking outside */
+document.addEventListener("click", () => {
+  document.querySelectorAll(".dropdown").forEach(d => d.style.display="none");
+});
+
+/* BACK */
+function goBack(){
+  window.location.href="home.html";
+}
+
+window.onload = loadItems;
+
+</script>
+
+</body>
+</html>

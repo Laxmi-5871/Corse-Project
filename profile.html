@@ -1,0 +1,1252 @@
+Here is the complete written code:Here is the full complete code — copy everything below and paste it into your `profile.html` file on GitHub:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile – KLETech Lost & Found</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue:   #2563eb;
+      --teal:   #0ea5e9;
+      --red:    #ef4444;
+      --green:  #10b981;
+      --orange: #f59e0b;
+      --purple: #8b5cf6;
+      --bg:     #f0f4fb;
+      --card:   #ffffff;
+      --text:   #0f172a;
+      --muted:  #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg); min-height: 100vh; color: var(--text); }
+
+    .topbar {
+      display: flex; align-items: center; padding: 14px 18px;
+      background: var(--card); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .topbar .back-btn { font-size: 22px; color: var(--text); cursor: pointer; text-decoration: none; margin-right: 12px; }
+    .topbar h2 { font-size: 18px; font-weight: 800; }
+
+    .hero {
+      background: linear-gradient(135deg, #1e40af 0%, #0ea5e9 60%, #06b6d4 100%);
+      padding: 32px 20px 80px; text-align: center; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: rgba(255,255,255,0.07);
+    }
+    .hero::after {
+      content: ''; position: absolute; bottom: -60px; left: -30px;
+      width: 180px; height: 180px; border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+    }
+    .avatar-wrap { position: relative; display: inline-block; margin-bottom: 14px; }
+    .avatar-circle {
+      width: 90px; height: 90px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      border: 3px solid rgba(255,255,255,0.6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; color: #fff; backdrop-filter: blur(6px);
+    }
+    .avatar-edit {
+      position: absolute; bottom: 2px; right: 2px; width: 28px; height: 28px;
+      border-radius: 50%; background: var(--card); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .hero .name  { font-size: 22px; font-weight: 900; color: #fff; margin-bottom: 3px; }
+    .hero .email { font-size: 13px; color: rgba(255,255,255,0.85); }
+    .hero .usn-badge {
+      display: inline-block; margin-top: 8px; padding: 4px 12px;
+      background: rgba(255,255,255,0.18); border-radius: 20px;
+      font-size: 12px; color: rgba(255,255,255,0.9); font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .hero .dept-year { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 4px; }
+
+    .stats-row {
+      display: flex; gap: 10px; padding: 0 16px;
+      margin-top: -54px; margin-bottom: 18px; position: relative; z-index: 10;
+    }
+    .stat-card {
+      flex: 1; background: var(--card); border-radius: 16px; padding: 14px 8px;
+      text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+      cursor: pointer; transition: transform 0.18s, box-shadow 0.18s; border: none;
+      border-top: 3px solid transparent;
+    }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.14); }
+    .stat-lost  { border-top-color: var(--red); }
+    .stat-found { border-top-color: var(--green); }
+    .stat-sell  { border-top-color: var(--orange); }
+    .stat-buy   { border-top-color: var(--blue); }
+    .stat-card .num { font-size: 24px; font-weight: 900; }
+    .stat-card .lbl { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-lost  .num { color: var(--red); }
+    .stat-found .num { color: var(--green); }
+    .stat-sell  .num { color: var(--orange); }
+    .stat-buy   .num { color: var(--blue); }
+
+    .verified-strip {
+      margin: 0 16px 16px; background: #ecfdf5; border: 1.5px solid #a7f3d0;
+      border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .verified-strip .v-icon { font-size: 22px; }
+    .verified-strip .v-text { font-size: 13px; font-weight: 700; color: #065f46; }
+    .verified-strip .v-sub  { font-size: 11px; color: #059669; }
+
+    .section-label {
+      font-size: 11px; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1.2px; padding: 4px 18px 8px;
+    }
+
+    .menu-group {
+      background: var(--card); border-radius: 16px; margin: 0 14px 14px;
+      overflow: hidden; box-shadow: var(--shadow);
+    }
+    .menu-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 15px 18px; border-bottom: 1px solid var(--border);
+      cursor: pointer; text-decoration: none; color: var(--text);
+      font-size: 14px; font-weight: 700; transition: background 0.15s;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-item:hover { background: #f8faff; }
+    .menu-item .left { display: flex; align-items: center; gap: 13px; }
+    .menu-item .right-info { display: flex; align-items: center; gap: 8px; }
+    .menu-item .tag { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 700; }
+    .tag-green  { background: #dcfce7; color: #15803d; }
+    .tag-blue   { background: #dbeafe; color: #1d4ed8; }
+    .tag-orange { background: #fef3c7; color: #b45309; }
+    .menu-icon { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .ic-blue   { background: #dbeafe; }
+    .ic-green  { background: #d1fae5; }
+    .ic-orange { background: #fef3c7; }
+    .ic-red    { background: #fee2e2; }
+    .ic-purple { background: #ede9fe; }
+    .ic-teal   { background: #e0f2fe; }
+    .ic-pink   { background: #fce7f3; }
+    .ic-yellow { background: #fefce8; }
+    .chevron { color: #cbd5e1; font-size: 18px; }
+
+    .logout-btn {
+      display: block; width: calc(100% - 28px); margin: 4px 14px 36px; padding: 15px;
+      background: var(--card); border: 2px solid var(--red); border-radius: 14px;
+      color: var(--red); font-size: 15px; font-weight: 800; cursor: pointer;
+      text-align: center; transition: all 0.2s; font-family: 'Nunito', sans-serif;
+    }
+    .logout-btn:hover { background: var(--red); color: #fff; }
+
+    .page-overlay {
+      display: none; position: fixed; inset: 0; background: var(--bg);
+      z-index: 200; flex-direction: column; overflow-y: auto;
+    }
+    .page-overlay.active { display: flex; }
+    .page-header {
+      display: flex; align-items: center; padding: 14px 18px;
+      background: var(--card); border-bottom: 1px solid var(--border);
+      gap: 12px; position: sticky; top: 0; z-index: 10;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    }
+    .page-header .close-page { font-size: 22px; cursor: pointer; color: var(--text); background: none; border: none; font-family: inherit; }
+    .page-header h3 { font-size: 17px; font-weight: 800; }
+
+    .items-list { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .item-card {
+      background: var(--card); border-radius: 16px; padding: 14px 16px;
+      border: 1px solid var(--border); display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: transform 0.15s;
+    }
+    .item-card:hover { transform: translateY(-2px); }
+    .item-icon { font-size: 30px; min-width: 40px; text-align: center; }
+    .item-info h4 { font-size: 15px; font-weight: 700; color: var(--text); }
+    .item-info p  { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .item-badge { margin-left: auto; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; white-space: nowrap; letter-spacing: 0.5px; }
+    .badge-lost  { background:#fee2e2; color:var(--red); }
+    .badge-found { background:#dcfce7; color:#15803d; }
+    .badge-buy   { background:#dbeafe; color:var(--blue); }
+    .badge-sell  { background:#fef3c7; color:#b45309; }
+
+    .form-wrap { width: 100%; max-width: 480px; padding: 20px; margin: 0 auto; }
+    .form-wrap label {
+      font-size: 11px; color: var(--muted); display: block;
+      margin-bottom: 6px; margin-top: 18px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .form-wrap input, .form-wrap select, .form-wrap textarea {
+      width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+      border-radius: 11px; font-size: 14px; outline: none;
+      font-family: 'Nunito', sans-serif; background: #f8fafc; transition: border 0.2s, box-sizing 0.2s;
+      color: var(--text);
+    }
+    .form-wrap input:focus, .form-wrap select:focus, .form-wrap textarea:focus {
+      border-color: var(--blue); background: #fff;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .form-wrap textarea { resize: vertical; min-height: 90px; }
+    .save-btn {
+      margin-top: 24px; width: 100%; padding: 15px;
+      background: linear-gradient(135deg, #2563eb, #0ea5e9);
+      color: #fff; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 800; cursor: pointer;
+      font-family: 'Nunito', sans-serif; transition: opacity 0.2s, transform 0.15s;
+    }
+    .save-btn:hover { opacity: 0.93; transform: translateY(-1px); }
+
+    .notif-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 15px 0; border-bottom: 1px solid var(--border);
+    }
+    .notif-row:last-of-type { border-bottom: none; }
+    .notif-label { display: flex; flex-direction: column; gap: 2px; }
+    .notif-label .n-title { font-size: 14px; color: var(--text); font-weight: 700; }
+    .notif-label .n-sub   { font-size: 11px; color: var(--muted); }
+    .toggle { position:relative; width:48px; height:27px; cursor:pointer; flex-shrink: 0; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .slider-tog { position:absolute; cursor:pointer; inset:0; background:#d1d5db; border-radius:27px; transition:.3s; }
+    .slider-tog:before {
+      content:''; position:absolute; height:21px; width:21px;
+      left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.3s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked + .slider-tog { background: var(--blue); }
+    .toggle input:checked + .slider-tog:before { transform:translateX(21px); }
+
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 60px 20px; gap: 10px;
+      color: var(--muted); text-align: center;
+    }
+    .empty-state .big-icon { font-size: 60px; margin-bottom: 6px; }
+    .empty-state h4 { font-size: 16px; font-weight: 800; color: var(--text); }
+    .empty-state p { font-size: 13px; color: var(--muted); }
+
+    .profile-pic-edit { display: flex; flex-direction: column; align-items: center; padding: 28px 0 10px; }
+    .profile-pic-edit .big-avatar {
+      width: 96px; height: 96px; border-radius: 50%;
+      background: linear-gradient(135deg,#2563eb,#0ea5e9);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 44px; color: #fff; margin-bottom: 10px;
+      box-shadow: 0 6px 20px rgba(37,99,235,0.3);
+    }
+    .profile-pic-edit button {
+      background: none; border: 1.5px solid var(--blue); color: var(--blue);
+      border-radius: 8px; padding: 7px 18px; font-size: 13px; font-weight: 700;
+      cursor: pointer; font-family: 'Nunito', sans-serif;
+    }
+
+    .pay-methods { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .pay-method-card {
+      background: var(--card); border-radius: 16px; padding: 18px;
+      border: 2px solid var(--border); cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .pay-method-card:hover { border-color: var(--blue); box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+    .pay-method-card.active { border-color: var(--blue); background: #f0f7ff; }
+    .pm-header { display: flex; align-items: center; gap: 14px; }
+    .pm-icon { font-size: 28px; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    .pm-icon.upi    { background: #f0f7ff; }
+    .pm-icon.bank   { background: #f0fdf4; }
+    .pm-title { font-size: 15px; font-weight: 800; color: var(--text); }
+    .pm-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .pm-arrow { margin-left: auto; font-size: 18px; color: #cbd5e1; }
+    .pm-body  { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .pm-body label {
+      font-size: 11px; color: var(--muted); display: block;
+      margin-bottom: 5px; margin-top: 12px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.8px;
+    }
+    .pm-body input {
+      width: 100%; padding: 11px 13px; border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 14px; outline: none;
+      font-family: 'Nunito', sans-serif; background: #fff; transition: border 0.2s;
+    }
+    .pm-body input:focus { border-color: var(--blue); }
+    .pm-save {
+      margin-top: 14px; width: 100%; padding: 12px;
+      background: var(--blue); color: #fff; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 800; cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+    }
+    .pm-save:hover { opacity: 0.9; }
+    .linked-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: #dcfce7; color: #15803d; padding: 3px 10px;
+      border-radius: 20px; font-size: 11px; font-weight: 700; margin-left: auto;
+    }
+
+    .txn-list { padding: 0 16px 16px; }
+    .txn-card {
+      background: var(--card); border-radius: 14px; padding: 14px 16px;
+      border: 1px solid var(--border); margin-bottom: 10px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .txn-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .txn-icon.credit { background: #dcfce7; }
+    .txn-icon.debit  { background: #fee2e2; }
+    .txn-info h4 { font-size: 14px; font-weight: 700; }
+    .txn-info p  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .txn-amt { margin-left: auto; font-size: 15px; font-weight: 800; }
+    .txn-amt.credit { color: var(--green); }
+    .txn-amt.debit  { color: var(--red); }
+
+    .about-wrap { padding: 20px; max-width: 480px; margin: 0 auto; }
+    .about-card {
+      background: var(--card); border-radius: 14px; padding: 18px;
+      border: 1px solid var(--border); margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .about-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 7px; color: var(--blue); }
+    .about-card p  { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    .faq-item {
+      background: var(--card); border-radius: 12px; padding: 16px;
+      margin-bottom: 10px; cursor: pointer; border: 1px solid var(--border); transition: border-color 0.2s;
+    }
+    .faq-item:hover { border-color: #93c5fd; }
+    .faq-item .q { font-size: 14px; font-weight: 700; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+    .faq-item .q .arrow { transition: transform 0.3s; font-style: normal; }
+    .faq-item.open .q .arrow { transform: rotate(90deg); }
+    .faq-item .a { display: none; font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.7; }
+    .faq-item.open .a { display: block; }
+
+    .lang-opt {
+      background: var(--card); border: 2px solid var(--border); padding: 16px 18px;
+      border-radius: 13px; cursor: pointer; font-size: 14px; font-weight: 700;
+      color: var(--text); margin-bottom: 10px; transition: all 0.2s;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .lang-opt .check { margin-left: auto; color: var(--blue); display: none; font-size: 18px; }
+    .lang-opt.selected { background: #eff6ff; border-color: var(--blue); color: var(--blue); }
+    .lang-opt.selected .check { display: block; }
+
+    .privacy-section {
+      background: var(--card); border-radius: 16px; margin: 0 16px 14px;
+      overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .privacy-section h4 {
+      font-size: 12px; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px; padding: 14px 18px 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .privacy-section .notif-row { padding: 14px 18px; }
+
+    .form-divider {
+      display: flex; align-items: center; gap: 10px; margin: 18px 0 6px;
+      color: var(--muted); font-size: 12px; font-weight: 700;
+    }
+    .form-divider::before, .form-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    .info-strip {
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 11px;
+      padding: 12px 14px; font-size: 12px; color: #1d4ed8; font-weight: 600;
+      margin-bottom: 6px; line-height: 1.5;
+    }
+
+    .page-sub { font-size: 13px; color: var(--muted); padding: 14px 18px 0; max-width: 480px; line-height: 1.6; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+  </style>
+</head>
+<body>
+
+<!-- ════════ MAIN PROFILE ════════ -->
+<div id="mainProfile">
+  <div class="topbar">
+    <a href="home.html" class="back-btn">&#8592;</a>
+    <h2>My Profile</h2>
+  </div>
+
+  <div class="hero">
+    <div class="avatar-wrap">
+      <div class="avatar-circle">👤</div>
+      <button class="avatar-edit" onclick="openPage('editProfilePage')">✏️</button>
+    </div>
+    <div class="name" id="heroName">Hi, Student</div>
+    <div class="email" id="heroEmail">user@kletech.ac.in</div>
+    <div id="heroUSN" class="usn-badge" style="display:none;"></div>
+    <div id="heroDeptYear" class="dept-year"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card stat-lost"  onclick="openPage('lostPage')">
+      <div class="num" id="cntLost">0</div><div class="lbl">Lost</div>
+    </div>
+    <div class="stat-card stat-found" onclick="openPage('foundPage')">
+      <div class="num" id="cntFound">0</div><div class="lbl">Found</div>
+    </div>
+    <div class="stat-card stat-sell"  onclick="openPage('sellPage')">
+      <div class="num" id="cntSell">0</div><div class="lbl">Selling</div>
+    </div>
+    <div class="stat-card stat-buy"   onclick="openPage('buyPage')">
+      <div class="num" id="cntBuy">0</div><div class="lbl">Bought</div>
+    </div>
+  </div>
+
+  <div class="verified-strip">
+    <div class="v-icon">✅</div>
+    <div>
+      <div class="v-text">KLETech Verified Student</div>
+      <div class="v-sub">Verified via @kletech.ac.in email</div>
+    </div>
+  </div>
+
+  <div class="section-label">Account</div>
+  <div class="menu-group">
+    <div class="menu-item" onclick="openPage('editProfilePage')">
+      <div class="left"><div class="menu-icon ic-blue">👤</div> Edit Profile</div>
+      <span class="chevron">›</span>
+    </div>
+    <div class="menu-item" onclick="openPage('paymentPage')">
+      <div class="left"><div class="menu-icon ic-green">💳</div> Payment & Wallet</div>
+      <div class="right-info"><span class="tag tag-green">Set Up</span><span class="chevron">›</span></div>
+    </div>
+    <div class="menu-item" onclick="openPage('privacyPage')">
+      <div class="left"><div class="menu-icon ic-purple">🔒</div> Account Privacy</div>
+      <span class="chevron">›</span>
+    </div>
+  </div>
+
+  <div class="section-label">My Activity</div>
+  <div class="menu-group">
+    <div class="menu-item" onclick="openPage('lostPage')">
+      <div class="left"><div class="menu-icon ic-red">🔍</div> My Lost Items</div>
+      <div class="right-info"><span id="badgeLost" class="tag tag-orange" style="display:none"></span><span class="chevron">›</span></div>
+    </div>
+    <div class="menu-item" onclick="openPage('foundPage')">
+      <div class="left"><div class="menu-icon ic-green">👜</div> My Found Items</div>
+      <div class="right-info"><span id="badgeFound" class="tag tag-green" style="display:none"></span><span class="chevron">›</span></div>
+    </div>
+    <div class="menu-item" onclick="openPage('sellPage')">
+      <div class="left"><div class="menu-icon ic-orange">🏷️</div> My Sell Listings</div>
+      <div class="right-info"><span id="badgeSell" class="tag tag-orange" style="display:none"></span><span class="chevron">›</span></div>
+    </div>
+    <div class="menu-item" onclick="openPage('buyPage')">
+      <div class="left"><div class="menu-icon ic-blue">🛒</div> My Buy Requests</div>
+      <div class="right-info"><span id="badgeBuy" class="tag tag-blue" style="display:none"></span><span class="chevron">›</span></div>
+    </div>
+    <div class="menu-item" onclick="openPage('txnPage')">
+      <div class="left"><div class="menu-icon ic-yellow">📊</div> Transaction History</div>
+      <span class="chevron">›</span>
+    </div>
+  </div>
+
+  <div class="section-label">Preferences</div>
+  <div class="menu-group">
+    <div class="menu-item" onclick="openPage('notifPage')">
+      <div class="left"><div class="menu-icon ic-teal">🔔</div> Notifications</div>
+      <span class="chevron">›</span>
+    </div>
+    <div class="menu-item" onclick="openPage('langPage')">
+      <div class="left"><div class="menu-icon ic-purple">🌐</div> Language</div>
+      <div class="right-info"><span class="tag tag-blue" id="currentLang">English</span><span class="chevron">›</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">Support</div>
+  <div class="menu-group">
+    <div class="menu-item" onclick="openPage('helpPage')">
+      <div class="left"><div class="menu-icon ic-orange">🆘</div> Help Center</div>
+      <span class="chevron">›</span>
+    </div>
+    <div class="menu-item" onclick="openPage('aboutPage')">
+      <div class="left"><div class="menu-icon ic-teal">ℹ️</div> About This App</div>
+      <span class="chevron">›</span>
+    </div>
+    <div class="menu-item" onclick="openPage('contactPage')">
+      <div class="left"><div class="menu-icon ic-pink">📧</div> Contact Support</div>
+      <span class="chevron">›</span>
+    </div>
+  </div>
+
+  <button class="logout-btn" onclick="logout()">🚪 Logout</button>
+</div>
+
+
+<!-- ════════ EDIT PROFILE ════════ -->
+<div class="page-overlay" id="editProfilePage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('editProfilePage')">&#8592;</button>
+    <h3>Edit Profile</h3>
+  </div>
+  <div class="profile-pic-edit">
+    <div class="big-avatar">👤</div>
+    <button>Change Photo</button>
+  </div>
+  <div class="form-wrap">
+    <label>Full Name</label>
+    <input type="text" id="editName" placeholder="Your full name" />
+    <label>Email Address</label>
+    <input type="email" id="editEmail" readonly style="background:#f1f5f9;color:#94a3b8;cursor:not-allowed;" />
+    <label>USN / Roll Number</label>
+    <input type="text" id="editUSN" placeholder="e.g. 01FE21BCS001" />
+    <label>Department</label>
+    <select id="editDept">
+      <option value="">Select Department</option>
+      <option>Computer Science</option>
+      <option>Information Science</option>
+      <option>Electronics & Communication</option>
+      <option>Mechanical Engineering</option>
+      <option>Civil Engineering</option>
+      <option>Electrical Engineering</option>
+      <option>Biotechnology</option>
+      <option>Other</option>
+    </select>
+    <label>Year of Study</label>
+    <select id="editYear">
+      <option value="">Select Year</option>
+      <option>1st Year</option>
+      <option>2nd Year</option>
+      <option>3rd Year</option>
+      <option>4th Year</option>
+    </select>
+    <label>Phone Number</label>
+    <input type="tel" id="editPhone" placeholder="+91 XXXXX XXXXX" maxlength="13" />
+    <label>Hostel / Address (optional)</label>
+    <input type="text" id="editHostel" placeholder="e.g. Boys Hostel Block A" />
+    <button class="save-btn" onclick="saveProfile()">💾 Save Changes</button>
+  </div>
+</div>
+
+
+<!-- ════════ LOST PAGE ════════ -->
+<div class="page-overlay" id="lostPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('lostPage')">&#8592;</button>
+    <h3>My Lost Items</h3>
+  </div>
+  <div class="items-list" id="myLostList"></div>
+</div>
+
+
+<!-- ════════ FOUND PAGE ════════ -->
+<div class="page-overlay" id="foundPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('foundPage')">&#8592;</button>
+    <h3>My Found Items</h3>
+  </div>
+  <div class="items-list" id="myFoundList"></div>
+</div>
+
+
+<!-- ════════ SELL PAGE ════════ -->
+<div class="page-overlay" id="sellPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('sellPage')">&#8592;</button>
+    <h3>My Sell Listings</h3>
+  </div>
+  <div class="items-list" id="mySellList"></div>
+</div>
+
+
+<!-- ════════ BUY PAGE ════════ -->
+<div class="page-overlay" id="buyPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('buyPage')">&#8592;</button>
+    <h3>My Buy Requests</h3>
+  </div>
+  <div class="items-list" id="myBuyList"></div>
+</div>
+
+
+<!-- ════════ TRANSACTION HISTORY ════════ -->
+<div class="page-overlay" id="txnPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('txnPage')">&#8592;</button>
+    <h3>Transaction History</h3>
+  </div>
+  <div id="txnList" style="padding:16px;"></div>
+</div>
+
+
+<!-- ════════ PAYMENT PAGE ════════ -->
+<div class="page-overlay" id="paymentPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('paymentPage')">&#8592;</button>
+    <h3>Payment & Wallet</h3>
+  </div>
+  <p class="page-sub">Add your payment details so buyers can pay you directly when you sell items on campus.</p>
+  <div class="pay-methods">
+
+    <div class="pay-method-card" id="pmUPI" onclick="togglePayMethod('pmUPI')">
+      <div class="pm-header">
+        <div class="pm-icon upi">📲</div>
+        <div>
+          <div class="pm-title">UPI</div>
+          <div class="pm-sub">GPay, PhonePe, Paytm, BHIM</div>
+        </div>
+        <span class="linked-badge" id="upiLinked" style="display:none">✔ Linked</span>
+        <span class="pm-arrow">›</span>
+      </div>
+      <div class="pm-body">
+        <div class="info-strip">💡 Your UPI ID lets buyers pay you instantly. Share it or display it as a QR code.</div>
+        <label>UPI ID</label>
+        <input type="text" id="payUPI" placeholder="yourname@okaxis / yourname@ybl" />
+        <button class="pm-save" onclick="savePayMethod('upi')">Link UPI ID</button>
+      </div>
+    </div>
+
+    <div class="pay-method-card" id="pmBank" onclick="togglePayMethod('pmBank')">
+      <div class="pm-header">
+        <div class="pm-icon bank">🏦</div>
+        <div>
+          <div class="pm-title">Bank Transfer</div>
+          <div class="pm-sub">NEFT / IMPS direct transfer</div>
+        </div>
+        <span class="linked-badge" id="bankLinked" style="display:none">✔ Linked</span>
+        <span class="pm-arrow">›</span>
+      </div>
+      <div class="pm-body">
+        <div class="info-strip">🔒 Your account details are stored locally and never shared without your permission.</div>
+        <label>Account Holder Name</label>
+        <input type="text" id="payHolder" placeholder="As per bank records" />
+        <label>Bank Account Number</label>
+        <input type="text" id="payAcc" placeholder="Enter account number" />
+        <label>Re-enter Account Number</label>
+        <input type="text" id="payAccConfirm" placeholder="Confirm account number" />
+        <label>IFSC Code</label>
+        <input type="text" id="payIFSC" placeholder="e.g. SBIN0001234" style="text-transform:uppercase;" />
+        <label>Bank Name</label>
+        <input type="text" id="payBank" placeholder="e.g. State Bank of India" />
+        <button class="pm-save" onclick="savePayMethod('bank')">Save Bank Details</button>
+      </div>
+    </div>
+
+    <div class="pay-method-card" id="pmCash" onclick="togglePayMethod('pmCash')">
+      <div class="pm-header">
+        <div class="pm-icon" style="background:#f0fdf4;">💵</div>
+        <div>
+          <div class="pm-title">Cash on Handover</div>
+          <div class="pm-sub">Meet on campus, pay in person</div>
+        </div>
+        <span class="linked-badge" style="background:#dcfce7;color:#15803d;">✔ Enabled</span>
+        <span class="pm-arrow">›</span>
+      </div>
+      <div class="pm-body">
+        <div class="info-strip">📍 Choose a safe campus spot to hand over the item and receive cash. Library, Canteen, or Admin Block recommended.</div>
+        <label>Preferred Meet Location</label>
+        <input type="text" id="payCashLoc" placeholder="e.g. Library Entrance, KLE Tech" />
+        <label>Preferred Time</label>
+        <input type="text" id="payCashTime" placeholder="e.g. Weekdays 10am – 5pm" />
+        <button class="pm-save" onclick="savePayMethod('cash')">Save Preference</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="padding: 0 16px 8px;">
+    <div class="form-divider">Transaction History</div>
+  </div>
+  <div id="payTxnList" style="padding: 0 16px 20px;"></div>
+</div>
+
+
+<!-- ════════ PRIVACY PAGE ════════ -->
+<div class="page-overlay" id="privacyPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('privacyPage')">&#8592;</button>
+    <h3>Account Privacy</h3>
+  </div>
+  <div style="height:12px;"></div>
+
+  <div class="privacy-section">
+    <h4>Visibility</h4>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Show email publicly</span>
+        <span class="n-sub">Others can see your email on listings</span>
+      </div>
+      <label class="toggle"><input type="checkbox"/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Show listings to all students</span>
+        <span class="n-sub">Your posts appear in campus feed</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Hide phone number</span>
+        <span class="n-sub">Only show phone to matched users</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+  </div>
+
+  <div class="privacy-section">
+    <h4>Messaging</h4>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Allow direct messages</span>
+        <span class="n-sub">Let other students message you</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Read receipts</span>
+        <span class="n-sub">Others see when you've read messages</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+  </div>
+
+  <div class="privacy-section">
+    <h4>Security</h4>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Two-factor authentication</span>
+        <span class="n-sub">Secure your account with OTP on login</span>
+      </div>
+      <label class="toggle"><input type="checkbox"/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Login activity alerts</span>
+        <span class="n-sub">Get notified of new login sessions</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+  </div>
+
+  <div style="padding:16px;">
+    <button class="save-btn" onclick="showSaved('Privacy settings saved!')">Save Privacy Settings</button>
+  </div>
+</div>
+
+
+<!-- ════════ NOTIFICATIONS ════════ -->
+<div class="page-overlay" id="notifPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('notifPage')">&#8592;</button>
+    <h3>Notifications</h3>
+  </div>
+  <div style="height:12px;"></div>
+
+  <div class="privacy-section">
+    <h4>Lost & Found</h4>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Match for my lost item</span>
+        <span class="n-sub">When a found item matches yours</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Someone claims my found item</span>
+        <span class="n-sub">Owner verification request</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Item status updates</span>
+        <span class="n-sub">When your item is marked resolved</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+  </div>
+
+  <div class="privacy-section">
+    <h4>Buy & Sell</h4>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">New listings in my category</span>
+        <span class="n-sub">New items matching your interests</span>
+      </div>
+      <label class="toggle"><input type="checkbox"/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Offer received on my listing</span>
+        <span class="n-sub">When a buyer sends an offer</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Payment received</span>
+        <span class="n-sub">Confirmation of successful payment</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+  </div>
+
+  <div class="privacy-section">
+    <h4>General</h4>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">Messages from other users</span>
+        <span class="n-sub">Direct message notifications</span>
+      </div>
+      <label class="toggle"><input type="checkbox" checked/><span class="slider-tog"></span></label>
+    </div>
+    <div class="notif-row">
+      <div class="notif-label">
+        <span class="n-title">App updates & announcements</span>
+        <span class="n-sub">New features and campus updates</span>
+      </div>
+      <label class="toggle"><input type="checkbox"/><span class="slider-tog"></span></label>
+    </div>
+  </div>
+
+  <div style="padding:16px;">
+    <button class="save-btn" onclick="showSaved('Notification preferences saved!')">Save Preferences</button>
+  </div>
+</div>
+
+
+<!-- ════════ LANGUAGE ════════ -->
+<div class="page-overlay" id="langPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('langPage')">&#8592;</button>
+    <h3>Language</h3>
+  </div>
+  <div style="padding:16px;max-width:460px;margin:0 auto;width:100%;">
+    <div class="lang-opt selected" onclick="selectLang(this,'English')">
+      🇬🇧 <span>English</span><span class="check">✓</span>
+    </div>
+    <div class="lang-opt" onclick="selectLang(this,'ಕನ್ನಡ')">
+      🇮🇳 <span>ಕನ್ನಡ (Kannada)</span><span class="check">✓</span>
+    </div>
+    <div class="lang-opt" onclick="selectLang(this,'हिंदी')">
+      🇮🇳 <span>हिंदी (Hindi)</span><span class="check">✓</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════ HELP PAGE ════════ -->
+<div class="page-overlay" id="helpPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('helpPage')">&#8592;</button>
+    <h3>Help Center</h3>
+  </div>
+  <div style="padding:16px;max-width:500px;margin:0 auto;width:100%;">
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="q">🔍 How do I report a lost item? <span class="arrow">›</span></div>
+      <div class="a">Go to the Lost section from the home page, tap "Report Lost Item" and fill in the item title, category, location, date, and upload a photo if available.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="q">👜 How do I report a found item? <span class="arrow">›</span></div>
+      <div class="a">Go to Found section and tap "Report Found Item". Fill in all details. The original owner will be notified if there's a match.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="q">🤝 How does matching work? <span class="arrow">›</span></div>
+      <div class="a">Our system compares lost and found item descriptions, categories, locations, and dates to suggest possible matches. Both parties get notified. Check the Matches tab regularly.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="q">🛒 How do I buy or sell items? <span class="arrow">›</span></div>
+      <div class="a">Go to Buy/Sell from the home page. List items for sale with photos and a price, or browse what others are selling. Contact the seller to arrange payment and pickup.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="q">💳 How do payments work? <span class="arrow">›</span></div>
+      <div class="a">Payments are peer-to-peer between buyers and sellers. You can pay via UPI (GPay, PhonePe, Paytm), bank transfer, or cash on campus. Set up your method in Payment & Wallet settings.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="q">👤 Who can use this app? <span class="arrow">›</span></div>
+      <div class="a">Only KLE Technological University students with a valid @kletech.ac.in email can register and use the platform.</div>
+    </div>
+    <div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="q">📞 How to contact support? <span class="arrow">›</span></div>
+      <div class="a">Email us at support@kletech-lostandfound.in or visit the IT Helpdesk at Admin Block, Room 102. We respond within 24 hours.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════ ABOUT PAGE ════════ -->
+<div class="page-overlay" id="aboutPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('aboutPage')">&#8592;</button>
+    <h3>About This App</h3>
+  </div>
+  <div class="about-wrap">
+    <div style="text-align:center;padding:20px 0 14px;">
+      <div style="font-size:60px;margin-bottom:10px;">🏫</div>
+      <div style="font-size:21px;font-weight:900;color:var(--blue);">KLETech Lost & Found</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;font-weight:700;">Version 1.0.0 · For students, by students</div>
+    </div>
+    <div class="about-card">
+      <h4>What is this app?</h4>
+      <p>KLETech Lost & Found is a campus platform for KLE Technological University students to report lost and found items, buy/sell goods, and get AI-powered matches — all in one place.</p>
+    </div>
+    <div class="about-card">
+      <h4>Our Mission</h4>
+      <p>To make campus life easier by helping students recover lost belongings and reduce waste through a smart campus reuse marketplace.</p>
+    </div>
+    <div class="about-card">
+      <h4>How Payments Work</h4>
+      <p>All payments are peer-to-peer — directly between buyers and sellers. We support UPI, bank transfers, and cash handovers. We don't hold any funds or charge any commission.</p>
+    </div>
+    <div class="about-card">
+      <h4>Developed By</h4>
+      <p>Built by students of KLE Technological University, Hubli, Karnataka 🇮🇳</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════ CONTACT PAGE ════════ -->
+<div class="page-overlay" id="contactPage">
+  <div class="page-header">
+    <button class="close-page" onclick="closePage('contactPage')">&#8592;</button>
+    <h3>Contact Support</h3>
+  </div>
+  <div class="form-wrap">
+    <div class="info-strip">📬 We typically respond within 24 hours on working days.</div>
+    <label>Your Name</label>
+    <input type="text" id="contactName" placeholder="Full name" />
+    <label>Email</label>
+    <input type="email" id="contactEmail" placeholder="your@kletech.ac.in" />
+    <label>Subject</label>
+    <select id="contactSubject">
+      <option value="">Select a topic</option>
+      <option>Lost item not found</option>
+      <option>Found item dispute</option>
+      <option>Payment issue</option>
+      <option>Account problem</option>
+      <option>Report inappropriate listing</option>
+      <option>Feature request</option>
+      <option>Other</option>
+    </select>
+    <label>Message</label>
+    <textarea id="contactMsg" placeholder="Describe your issue or query in detail..."></textarea>
+    <button class="save-btn" onclick="sendContact()">📤 Send Message</button>
+  </div>
+</div>
+
+
+<!-- ════════════════════ SCRIPTS ════════════════════ -->
+<script>
+(function () {
+  var user   = JSON.parse(localStorage.getItem("user")   || "null");
+  var extras = JSON.parse(localStorage.getItem("profileExtras") || "{}");
+
+  if (!user) {
+    alert("Please login first");
+    window.location.href = "login.html";
+    return;
+  }
+
+  var name = "";
+  if (extras.email && extras.email === user.email && extras.name) name = extras.name;
+  if (!name) name = user.name || user.username || user.fullName || user.displayName || "";
+  if (!name && user.email) name = user.email.split("@")[0];
+  if (!name) name = "Student";
+
+  document.getElementById("heroName").innerText  = "👋 Hi, " + name;
+  document.getElementById("heroEmail").innerText = user.email || "";
+
+  var usnEl = document.getElementById("heroUSN");
+  if (extras.usn) { usnEl.innerText = extras.usn; usnEl.style.display = "inline-block"; }
+
+  var deptYear = [];
+  if (extras.dept) deptYear.push(extras.dept);
+  if (extras.year) deptYear.push(extras.year);
+  if (deptYear.length) document.getElementById("heroDeptYear").innerText = deptYear.join(" · ");
+
+  document.getElementById("editName").value   = extras.name   || "";
+  document.getElementById("editEmail").value  = user.email    || "";
+  document.getElementById("editUSN").value    = extras.usn    || "";
+  document.getElementById("editPhone").value  = extras.phone  || "";
+  document.getElementById("editHostel").value = extras.hostel || "";
+
+  var deptSel = document.getElementById("editDept");
+  var yearSel = document.getElementById("editYear");
+  for (var i = 0; i < deptSel.options.length; i++) {
+    if (deptSel.options[i].text === extras.dept) { deptSel.selectedIndex = i; break; }
+  }
+  for (var j = 0; j < yearSel.options.length; j++) {
+    if (yearSel.options[j].text === extras.year) { yearSel.selectedIndex = j; break; }
+  }
+
+  var pay = JSON.parse(localStorage.getItem("paymentData") || "{}");
+  if (pay.upi)        { document.getElementById("payUPI").value    = pay.upi;      document.getElementById("upiLinked").style.display  = "inline-flex"; }
+  if (pay.holder)       document.getElementById("payHolder").value  = pay.holder;
+  if (pay.acc)          document.getElementById("payAcc").value      = pay.acc;
+  if (pay.ifsc)         document.getElementById("payIFSC").value     = pay.ifsc;
+  if (pay.bankName)     document.getElementById("payBank").value     = pay.bankName;
+  if (pay.cashLoc)      document.getElementById("payCashLoc").value  = pay.cashLoc;
+  if (pay.cashTime)     document.getElementById("payCashTime").value = pay.cashTime;
+  if (pay.bankLinked)   document.getElementById("bankLinked").style.display = "inline-flex";
+
+  refreshCounts();
+  renderTxnList("payTxnList");
+  renderTxnList("txnList");
+
+  document.getElementById("contactName").value  = name;
+  document.getElementById("contactEmail").value = user.email || "";
+})();
+
+// ── Helper: get items trying multiple possible localStorage key names ──
+function getItems(type) {
+  var keyMap = {
+    lost:  ["lostItems",  "lost_items",  "myLostItems",  "reportedLost"],
+    found: ["foundItems", "found_items", "myFoundItems", "reportedFound"],
+    sell:  ["sellItems",  "sell_items",  "mySellItems",  "listings",    "sellListings"],
+    buy:   ["buyItems",   "buy_items",   "myBuyItems",   "buyRequests", "purchases"]
+  };
+  var keys = keyMap[type] || [];
+  for (var k = 0; k < keys.length; k++) {
+    var raw = localStorage.getItem(keys[k]);
+    if (raw) {
+      try {
+        var parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch(e) {}
+    }
+  }
+  return [];
+}
+
+// ── Helper: check if item belongs to current user ──
+function itemBelongsToUser(item, userEmail) {
+  return (
+    item.email      === userEmail ||
+    item.userEmail  === userEmail ||
+    item.postedBy   === userEmail ||
+    item.ownerEmail === userEmail ||
+    item.user       === userEmail
+  );
+}
+
+// ── Refresh stat counts and menu badges ──
+function refreshCounts() {
+  var user = JSON.parse(localStorage.getItem("user") || "null");
+  if (!user) return;
+  var myEmail = user.email;
+
+  var cL = getItems("lost").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
+  var cF = getItems("found").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
+  var cS = getItems("sell").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
+  var cB = getItems("buy").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
+
+  document.getElementById("cntLost").innerText  = cL;
+  document.getElementById("cntFound").innerText = cF;
+  document.getElementById("cntSell").innerText  = cS;
+  document.getElementById("cntBuy").innerText   = cB;
+
+  var bL = document.getElementById("badgeLost");
+  var bF = document.getElementById("badgeFound");
+  var bS = document.getElementById("badgeSell");
+  var bB = document.getElementById("badgeBuy");
+
+  if (cL) { bL.innerText = cL + " item" + (cL>1?"s":""); bL.style.display = "inline-block"; } else { bL.style.display = "none"; }
+  if (cF) { bF.innerText = cF + " item" + (cF>1?"s":""); bF.style.display = "inline-block"; } else { bF.style.display = "none"; }
+  if (cS) { bS.innerText = cS + " item" + (cS>1?"s":""); bS.style.display = "inline-block"; } else { bS.style.display = "none"; }
+  if (cB) { bB.innerText = cB + " item" + (cB>1?"s":""); bB.style.display = "inline-block"; } else { bB.style.display = "none"; }
+}
+
+function openPage(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add("active");
+  el.scrollTop = 0;
+
+  var user = JSON.parse(localStorage.getItem("user") || "null");
+  if (!user) return;
+  var myEmail = user.email;
+
+  if (id === "lostPage")  renderList("myLostList",  getItems("lost").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "lost");
+  if (id === "foundPage") renderList("myFoundList", getItems("found").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "found");
+  if (id === "sellPage")  renderList("mySellList",  getItems("sell").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "sell");
+  if (id === "buyPage")   renderList("myBuyList",   getItems("buy").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "buy");
+}
+
+function closePage(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove("active");
+  refreshCounts();
+}
+
+function renderList(containerId, items, type) {
+  var container = document.getElementById(containerId);
+  container.innerHTML = "";
+  if (!items || items.length === 0) {
+    var e = {
+      lost:  { icon:"🔍", title:"No lost reports yet",  sub:"Report a lost item from the home page" },
+      found: { icon:"👜", title:"No found items yet",   sub:"Report a found item to help someone" },
+      sell:  { icon:"🏷️", title:"No listings yet",      sub:"List something for sale on campus" },
+      buy:   { icon:"🛒", title:"No buy requests yet",  sub:"Browse listings on the home page" }
+    }[type] || { icon:"📭", title:"Nothing here", sub:"" };
+    container.innerHTML = '<div class="empty-state"><div class="big-icon">'+e.icon+'</div><h4>'+e.title+'</h4><p>'+e.sub+'</p></div>';
+    return;
+  }
+  var icons      = { lost:"🔍", found:"👜", sell:"🏷️", buy:"🛒" };
+  var badgeClass = { lost:"badge-lost", found:"badge-found", sell:"badge-sell", buy:"badge-buy" };
+  items.forEach(function(item) {
+    var card = document.createElement("div");
+    card.className = "item-card";
+    var title    = item.title    || item.itemName  || item.name       || "Untitled";
+    var category = item.category || item.type      || item.itemType   || "";
+    var date     = item.date     || item.lostDate  || item.foundDate  || item.postedDate || item.createdAt || "";
+    var price    = item.price    || item.amount    || "";
+    var location = item.location || item.place     || item.foundPlace || item.lostPlace  || "";
+    var priceStr = (type==="sell" && price) ? " · ₹"+price : "";
+    var locStr   = location ? " · 📍"+location : "";
+    var catDate  = [category, date].filter(Boolean).join(" · ");
+    card.innerHTML =
+      '<div class="item-icon">'+(icons[type]||"📦")+'</div>' +
+      '<div class="item-info">' +
+        '<h4>'+title+'</h4>' +
+        '<p>'+catDate+priceStr+locStr+'</p>' +
+      '</div>' +
+      '<span class="item-badge '+badgeClass[type]+'">'+(type==="sell"?"SELLING":type.toUpperCase())+'</span>';
+    container.appendChild(card);
+  });
+}
+
+function renderTxnList(containerId) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  var txns = JSON.parse(localStorage.getItem("transactions") || "[]");
+  if (!txns.length) {
+    container.innerHTML = '<div class="empty-state" style="padding:30px 20px;"><div class="big-icon">📊</div><h4>No transactions yet</h4><p>Your payment history will appear here</p></div>';
+    return;
+  }
+  container.innerHTML = "";
+  txns.forEach(function(t) {
+    var div = document.createElement("div");
+    div.className = "txn-card";
+    var isCredit = t.type === "credit";
+    div.innerHTML =
+      '<div class="txn-icon '+(isCredit?"credit":"debit")+'">'+(isCredit?"💰":"🛒")+'</div>' +
+      '<div class="txn-info"><h4>'+t.desc+'</h4><p>'+t.date+'</p></div>' +
+      '<div class="txn-amt '+(isCredit?"credit":"debit")+'">'+(isCredit?"+":"-")+'₹'+t.amount+'</div>';
+    container.appendChild(div);
+  });
+}
+
+function saveProfile() {
+  var user = JSON.parse(localStorage.getItem("user") || "null");
+  if (!user) return;
+
+  var newName = document.getElementById("editName").value.trim();
+  var deptSel = document.getElementById("editDept");
+  var yearSel = document.getElementById("editYear");
+  var extras = {
+    email:  user.email,
+    name:   newName,
+    usn:    document.getElementById("editUSN").value.trim(),
+    dept:   deptSel.options[deptSel.selectedIndex].text,
+    year:   yearSel.options[yearSel.selectedIndex].text,
+    phone:  document.getElementById("editPhone").value.trim(),
+    hostel: document.getElementById("editHostel").value.trim()
+  };
+  if (extras.dept === "Select Department") extras.dept = "";
+  if (extras.year === "Select Year")       extras.year = "";
+
+  localStorage.setItem("profileExtras", JSON.stringify(extras));
+  user.name = newName;
+  localStorage.setItem("user", JSON.stringify(user));
+
+  if (newName) document.getElementById("heroName").innerText = "👋 Hi, " + newName;
+  var usnEl = document.getElementById("heroUSN");
+  if (extras.usn) { usnEl.innerText = extras.usn; usnEl.style.display = "inline-block"; } else { usnEl.style.display = "none"; }
+  var dy = [];
+  if (extras.dept) dy.push(extras.dept);
+  if (extras.year) dy.push(extras.year);
+  document.getElementById("heroDeptYear").innerText = dy.join(" · ");
+
+  showSaved("Profile saved successfully! ✅");
+  closePage("editProfilePage");
+}
+
+function togglePayMethod(id) {
+  document.querySelectorAll(".pay-method-card").forEach(function(c) {
+    if (c.id !== id) { c.classList.remove("active"); c.querySelector(".pm-body").style.display = "none"; }
+  });
+  var card = document.getElementById(id);
+  var body = card.querySelector(".pm-body");
+  var isOpen = card.classList.contains("active");
+  if (isOpen) { card.classList.remove("active"); body.style.display = "none"; }
+  else         { card.classList.add("active");    body.style.display = "block"; }
+}
+
+function savePayMethod(type) {
+  var pay = JSON.parse(localStorage.getItem("paymentData") || "{}");
+  if (type === "upi") {
+    var upi = document.getElementById("payUPI").value.trim();
+    if (!upi) { alert("Please enter your UPI ID"); return; }
+    pay.upi = upi;
+    document.getElementById("upiLinked").style.display = "inline-flex";
+    showSaved("UPI ID linked successfully! ✅");
+  } else if (type === "bank") {
+    var acc     = document.getElementById("payAcc").value.trim();
+    var confirm = document.getElementById("payAccConfirm").value.trim();
+    if (!acc || !confirm) { alert("Please fill all bank details"); return; }
+    if (acc !== confirm)  { alert("Account numbers do not match!"); return; }
+    pay.holder   = document.getElementById("payHolder").value.trim();
+    pay.acc      = acc;
+    pay.ifsc     = document.getElementById("payIFSC").value.trim().toUpperCase();
+    pay.bankName = document.getElementById("payBank").value.trim();
+    pay.bankLinked = true;
+    document.getElementById("bankLinked").style.display = "inline-flex";
+    showSaved("Bank details saved securely! ✅");
+  } else if (type === "cash") {
+    pay.cashLoc  = document.getElementById("payCashLoc").value.trim();
+    pay.cashTime = document.getElementById("payCashTime").value.trim();
+    showSaved("Cash preference saved! ✅");
+  }
+  localStorage.setItem("paymentData", JSON.stringify(pay));
+}
+
+function selectLang(el, lang) {
+  document.querySelectorAll(".lang-opt").forEach(function(o){ o.classList.remove("selected"); });
+  el.classList.add("selected");
+  document.getElementById("currentLang").innerText = lang;
+  localStorage.setItem("appLang", lang);
+}
+
+function sendContact() {
+  var name    = document.getElementById("contactName").value.trim();
+  var email   = document.getElementById("contactEmail").value.trim();
+  var subject = document.getElementById("contactSubject").value;
+  var msg     = document.getElementById("contactMsg").value.trim();
+  if (!name || !email || !subject || !msg) { alert("Please fill in all fields before sending."); return; }
+  showSaved("Message sent! We'll get back to you within 24 hours. ✅");
+  document.getElementById("contactMsg").value = "";
+  closePage("contactPage");
+}
+
+function showSaved(msg) { alert(msg || "Saved!"); }
+
+function logout() {
+  if (confirm("Are you sure you want to logout?")) {
+    localStorage.removeItem("user");
+    window.location.href = "login.html";
+  }
+}
+
+// ── Listen for localStorage changes from other tabs/pages ──
+window.addEventListener("storage", function(e) {
+  var watchedKeys = ["lostItems","foundItems","sellItems","buyItems",
+                     "lost_items","found_items","sell_items","buy_items",
+                     "myLostItems","myFoundItems","mySellItems","myBuyItems",
+                     "reportedLost","reportedFound","listings","sellListings",
+                     "buyRequests","purchases"];
+  if (watchedKeys.indexOf(e.key) !== -1) { refreshCounts(); }
+});
+
+// ── Refresh counts when user navigates back to this page ──
+document.addEventListener("visibilitychange", function() {
+  if (document.visibilityState === "visible") { refreshCounts(); }
+});
+</script>
+</body>
+</html>

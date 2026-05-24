@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market</title>
+
+<style>
+/* SAME CSS — NO CHANGE */
+body{
+  font-family:Segoe UI;
+  margin:0;
+  background:#f8fafc;
+}
+
+header{
+  background:#49b8d7;
+  color:white;
+  padding:14px;
+  text-align:center;
+  font-size:20px;
+  font-weight:600;
+  position:relative;
+}
+
+.back-btn{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:22px;
+  cursor:pointer;
+}
+
+.top-bar{
+  text-align:center;
+  margin:20px;
+}
+
+.top-bar button{
+  background:#49b8d7;
+  color:white;
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.items{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:20px;
+  padding:20px;
+}
+
+.card{
+  background:white;
+  border-radius:16px;
+  padding:15px;
+  position:relative;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  transition:0.2s;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+}
+
+.menu-btn{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:#f3f4f6;
+  padding:8px;
+  border-radius:50%;
+  cursor:pointer;
+}
+
+.card img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+  margin-top:20px;
+}
+
+.card h4{
+  margin:10px 0 5px;
+}
+
+.card p{
+  margin:4px 0;
+  font-size:14px;
+  color:#6b7280;
+}
+
+.buy-btn{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  background:#49b8d7;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.dropdown{
+  position:absolute;
+  top:40px;
+  right:10px;
+  background:white;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  display:none;
+  flex-direction:column;
+}
+
+.dropdown button{
+  padding:10px;
+  border:none;
+  background:none;
+  cursor:pointer;
+}
+
+.popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.4);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+
+.form-box{
+  background:white;
+  padding:25px;
+  width:90%;
+  max-width:350px;
+  border-radius:16px;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+  border:1px solid #ddd;
+  border-radius:8px;
+}
+
+.submit-btn{
+  width:100%;
+  padding:10px;
+  background:#49b8d7;
+  border:none;
+  color:white;
+  border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <span class="back-btn" onclick="goBack()">←</span>
+  Market
+</header>
+
+<div class="top-bar">
+  <button onclick="openForm()">➕ List New Item</button>
+</div>
+
+<div class="items" id="itemsContainer"></div>
+
+<!-- POPUP -->
+<div class="popup" id="popup">
+  <div class="form-box">
+    <span style="float:right;cursor:pointer;" onclick="closeForm()">✖</span>
+    <h3>Sell Item</h3>
+
+    <form id="sellForm">
+      <input type="hidden" id="editId">
+      <input type="text" id="title" placeholder="Item name" required>
+      <input type="number" id="price" placeholder="Price (₹)" required>
+      <input type="text" id="contact" placeholder="Location / Phone" required>
+      <input type="file" id="image" accept="image/*">
+      <button type="submit" class="submit-btn">Post</button>
+    </form>
+  </div>
+</div>
+
+<script>
+
+/* LOAD */
+let marketItems = JSON.parse(localStorage.getItem("marketItems")) || [];
+
+/* SAVE */
+function saveItems(){
+  localStorage.setItem("marketItems", JSON.stringify(marketItems));
+}
+
+/* RENDER */
+function renderItems(){
+  const container = document.getElementById("itemsContainer");
+  container.innerHTML = "";
+
+  if(marketItems.length === 0){
+    container.innerHTML = "<h3 style='padding:20px'>No items yet</h3>";
+    return;
+  }
+
+  marketItems.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="menu-btn" onclick="toggleMenu(event, ${item.id})">⋮</div>
+
+      <img src="${item.img}">
+
+      <h4>${item.title}</h4>
+      <p>💰 ₹${item.price}</p>
+      <p>📍 ${item.contact}</p>
+
+      <!-- 🔥 ONLY CHANGE -->
+      <button class="buy-btn" onclick="buyNow(${item.id})">Purchase</button>
+
+      <div class="dropdown" id="menu-${item.id}">
+        <button onclick="editItem(${item.id})">✏️ Edit</button>
+        <button onclick="deleteItem(${item.id})">🗑 Delete</button>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+/* 🔥 NEW FUNCTION ADDED */
+function buyNow(id){
+  const item = marketItems.find(i => i.id === id);
+
+  if(!item){
+    alert("Item not found");
+    return;
+  }
+
+  window.location.href =
+    "payment.html?name=" + encodeURIComponent(item.title) +
+    "&price=" + encodeURIComponent(item.price);
+}
+
+/* MENU */
+function toggleMenu(event, id){
+  event.stopPropagation();
+  document.querySelectorAll(".dropdown").forEach(m => m.style.display = "none");
+  document.getElementById("menu-" + id).style.display = "flex";
+}
+
+document.addEventListener("click", () => {
+  document.querySelectorAll(".dropdown").forEach(m => m.style.display = "none");
+});
+
+/* DELETE */
+function deleteItem(id){
+  if(confirm("Delete this item?")){
+    marketItems = marketItems.filter(item => item.id !== id);
+    saveItems();
+    renderItems();
+  }
+}
+
+/* EDIT */
+function editItem(id){
+  const item = marketItems.find(i => i.id === id);
+  document.getElementById("editId").value = item.id;
+  document.getElementById("title").value = item.title;
+  document.getElementById("price").value = item.price;
+  document.getElementById("contact").value = item.contact;
+  openForm();
+}
+
+/* FORM */
+function openForm(){
+  document.getElementById("popup").style.display = "flex";
+}
+
+function closeForm(){
+  document.getElementById("popup").style.display = "none";
+  document.getElementById("sellForm").reset();
+}
+
+/* SUBMIT */
+document.getElementById("sellForm").addEventListener("submit", function(e){
+  e.preventDefault();
+
+  const id = document.getElementById("editId").value;
+  const title = document.getElementById("title").value;
+  const price = document.getElementById("price").value;
+  const contact = document.getElementById("contact").value;
+
+  if(id){
+    const index = marketItems.findIndex(i => i.id == id);
+    marketItems[index] = {...marketItems[index], title, price, contact};
+    saveItems();
+    renderItems();
+    closeForm();
+  } else {
+    const file = document.getElementById("image").files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(){
+      marketItems.unshift({
+        id: Date.now(),
+        title,
+        price,
+        contact,
+        img: reader.result
+      });
+      saveItems();
+      renderItems();
+      closeForm();
+    };
+
+    if(file){
+      reader.readAsDataURL(file);
+    } else {
+      alert("Please select an image");
+    }
+  }
+});
+
+/* LOAD */
+renderItems();
+
+function goBack(){
+  window.location.href = "home.html";
+}
+
+</script>
+
+</body>
+</html>

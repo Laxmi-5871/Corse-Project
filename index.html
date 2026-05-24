@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Track & Trade Loop</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    font-family: Arial;
+    color: white;
+    text-align: center;
+}
+
+.loader {
+    margin: 20px auto;
+    width: 50px;
+    height: 50px;
+    border: 5px solid #fff;
+    border-top: 5px solid #00c6ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+</style>
+</head>
+
+<body>
+
+<div>
+    <h1>Welcome to Track & Trade Loop</h1>
+    <p>Lost & Found • Buy & Sell</p>
+    <div class="loader"></div>
+</div>
+
+<script>
+setTimeout(() => {
+    window.location.href = "register.html";
+}, 3000);
+</script>
+<script type="module"
+src="firebase.js"></script>
+</body>
+</html>

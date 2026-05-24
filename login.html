@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+
+<style>
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(-45deg,#0f172a,#1e3a8a,#0ea5e9,#0f172a);
+    background-size:400% 400%;
+    animation:bgMove 10s infinite;
+    font-family:Arial;
+}
+
+@keyframes bgMove{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+}
+
+.container{
+    width:340px;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    margin-top:10px;
+    border:none;
+    border-radius:8px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+}
+
+.alt{
+    background:transparent;
+    border:2px solid #2563eb;
+    color:#2563eb;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Login</h2>
+
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+
+<button onclick="login()">Login</button>
+
+<button class="alt" onclick="goRegister()">New user? Register</button>
+
+</div>
+
+<script>
+
+function goRegister(){
+    window.location.href="register.html";
+}
+
+
+function login(){
+
+    let email =
+      document.getElementById("email").value.trim();
+
+    let password =
+      document.getElementById("password").value.trim();
+
+    let storedUser =
+      JSON.parse(localStorage.getItem("user"));
+
+    if(!storedUser){
+        alert("No user found. Please register.");
+        return;
+    }
+
+    if(
+      email === storedUser.email &&
+      password === storedUser.password
+    ){
+
+        // SAVE LOGGED-IN USER
+        localStorage.setItem(
+          "loggedInEmail",
+          email
+        );
+
+        alert("Login Successful 🚀");
+
+        window.location.href = "home.html";
+
+    } else {
+
+        alert("Invalid credentials ❌");
+
+    }
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KLETech Lost & Found</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<style>
+body{
+  font-family:Segoe UI;
+  margin:0;
+  background:#eef2f7;
+}
+
+/* NAVBAR */
+.navbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 20px;
+  background:#49b8d7;
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.logo img{
+  width:90px;
+}
+
+nav{
+  display:flex;
+  gap:20px;
+}
+
+nav a{
+  text-decoration:none;
+  color:white;
+  font-size:20px;
+}
+
+/* HERO */
+.hero{
+  padding:30px;
+  color:white;
+  background:url("KLE.png") center/cover;
+  height:300px;
+  border-radius:10px;
+  margin:20px;
+}
+
+/* SEARCH */
+.search{
+  margin:20px;
+  background:white;
+  padding:15px;
+  border-radius:10px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.search input,
+.search select{
+  padding:10px;
+  border-radius:5px;
+  border:1px solid #ccc;
+}
+
+.search button{
+  background:#2563eb;
+  color:white;
+  border:none;
+  padding:10px 15px;
+  border-radius:5px;
+  cursor:pointer;
+}
+
+/* GRID */
+.items{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:20px;
+  padding:20px;
+}
+
+/* CARD */
+.feed-card{
+  background:white;
+  border-radius:16px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  transition:0.2s;
+}
+
+.feed-card:hover{
+  transform:translateY(-4px);
+}
+
+/* IMAGE */
+.feed-card img{
+  width:100%;
+  height:180px;
+  object-fit:contain;
+  margin-top:20px;
+  display:block;
+}
+
+/* TAG */
+.feed-tag{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#49b8d7;
+  color:white;
+  padding:5px 10px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:500;
+}
+
+/* CONTENT */
+.feed-content{
+  padding:14px;
+}
+
+.feed-content h4{
+  margin:10px 0;
+  font-size:18px;
+  color:#111827;
+}
+
+.feed-content p{
+  margin:6px 0;
+  color:#6b7280;
+  font-size:14px;
+}
+
+/* BUTTONS */
+.btn{
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+.view{
+  background:#2563eb;
+  color:white;
+}
+
+.buy{
+  background:#22c55e;
+  color:white;
+  margin-left:5px;
+}
+
+/* FOOTER */
+footer{
+  background:#0f172a;
+  color:white;
+  padding:20px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<script>
+let user = JSON.parse(localStorage.getItem("user"));
+
+if(!user){
+  alert("Please login first");
+  window.location.href = "login.html";
+}
+</script>
+
+<header class="navbar">
+
+  <div class="logo">
+    <img src="logoo.png.jpeg">
+    <h2>KLETECH</h2>
+    <h3>TRACK AND TRADE LOOP</h3>
+  </div>
+
+  <nav>
+    <a href="home.html">🏠 Home</a>
+    <a href="Lost.html">🔍 Lost</a>
+    <a href="found.html">👜 Found</a>
+    <a href="buyandsell.html">🏷️ Buy/Sell</a>
+    <a href="matches.html">🤝 Matches</a>
+  </nav>
+
+  <div style="display:flex;align-items:center;gap:10px;">
+
+    <span id="userDisplay"
+          onclick="goProfile()"
+          style="cursor:pointer;">
+      👤 Student
+    </span>
+
+    
+
+  </div>
+
+</header>
+
+<section class="hero">
+  <h1>
+    Find What You Lost,<br>
+    Sell What You Don't Need
+  </h1>
+</section>
+
+<!-- SEARCH -->
+<div class="search">
+
+  <input type="text"
+         id="searchInput"
+         placeholder="Search...">
+
+  <select id="category">
+    <option value="">All Categories</option>
+    <option>Electronics</option>
+    <option>Accessories</option>
+    <option>Books</option>
+    <option>Documents</option>
+    <option>Clothing</option>
+    <option>Others</option>
+  </select>
+
+  <input type="text"
+         id="locationInput"
+         placeholder="Location">
+
+  <input type="text"
+         id="dateRange"
+         placeholder="Date Range">
+
+  <button id="searchBtn">Search</button>
+
+</div>
+
+<h1 style="padding-left:20px;">Recent Listings</h1>
+
+<div id="itemsContainer" class="items"></div>
+
+<footer>
+  © 2026 KLETech
+</footer>
+
+<script>
+
+// USER NAME
+window.onload = function(){
+
+  let user = JSON.parse(localStorage.getItem("user"));
+
+  if(user){
+    document.getElementById("userDisplay").innerText =
+      "👤 " + (user.name || user.email || "Student");
+  }
+}
+
+// DATE PICKER
+flatpickr("#dateRange",{
+  mode:"range",
+  dateFormat:"Y-m-d"
+});
+
+// LOAD ITEMS
+let allItems = [];
+
+document.addEventListener("DOMContentLoaded",function(){
+
+  let lost = JSON.parse(localStorage.getItem("lostItems")) || [];
+  let found = JSON.parse(localStorage.getItem("foundItems")) || [];
+  let sell = JSON.parse(localStorage.getItem("sellItems")) || [];
+
+  lost.forEach(i => i.type = "LOST");
+  found.forEach(i => i.type = "FOUND");
+  sell.forEach(i => i.type = "SELL");
+
+  allItems = [...lost, ...found, ...sell];
+
+  // LAST 10 DAYS FILTER
+  let today = new Date();
+  today.setHours(23,59,59,999);
+
+  let tenDaysAgo = new Date();
+  tenDaysAgo.setDate(today.getDate() - 10);
+  tenDaysAgo.setHours(0,0,0,0);
+
+  allItems = allItems.filter(item => {
+
+    if(!item.date) return false;
+
+    let itemDate = new Date(item.date);
+    itemDate.setHours(0,0,0,0);
+
+    return itemDate >= tenDaysAgo && itemDate <= today;
+  });
+
+  // SORT
+  allItems.sort((a,b)=>
+    new Date(b.date) - new Date(a.date)
+  );
+
+  // IF EMPTY SHOW OLD ITEMS
+  if(allItems.length === 0){
+
+    let oldLost =
+      JSON.parse(localStorage.getItem("lostItems")) || [];
+
+    let oldFound =
+      JSON.parse(localStorage.getItem("foundItems")) || [];
+
+    let oldSell =
+      JSON.parse(localStorage.getItem("sellItems")) || [];
+
+    oldLost.forEach(i=>i.type="LOST");
+    oldFound.forEach(i=>i.type="FOUND");
+    oldSell.forEach(i=>i.type="SELL");
+
+    let backupItems = [
+      ...oldLost,
+      ...oldFound,
+      ...oldSell
+    ];
+
+    backupItems.sort((a,b)=>
+      new Date(b.date)-new Date(a.date)
+    );
+
+    allItems = backupItems.slice(0,15);
+  }
+
+  renderItems(allItems);
+});
+
+// RENDER
+function renderItems(items){
+
+  let container =
+    document.getElementById("itemsContainer");
+
+  container.innerHTML = "";
+
+  items.forEach((item,index)=>{
+
+    let card = document.createElement("div");
+
+    card.className = "feed-card";
+
+    card.innerHTML = `
+
+      <div class="feed-tag">
+        ${item.type==="SELL" ? "SALE" : item.type}
+      </div>
+
+      <img src="${item.image || 'https://via.placeholder.com/300'}">
+
+      <div class="feed-content">
+
+        <h4>${item.title}</h4>
+
+        <p>📂 ${item.category || 'N/A'}</p>
+
+        ${
+          item.type==="SELL"
+
+          ?
+
+          `
+          <p>💰 ₹${item.price || 'N/A'}</p>
+
+          <button class="btn view"
+                  onclick="viewItem(${index})">
+            View
+          </button>
+
+          <button class="btn buy"
+                  onclick="buyItem('${item.title}')">
+            Buy
+          </button>
+          `
+
+          :
+
+          `
+          <p>📍 ${item.location || 'N/A'}</p>
+          <p>📅 ${item.date || 'N/A'}</p>
+
+          <button class="btn view"
+                  onclick="viewItem(${index})">
+            View
+          </button>
+          `
+        }
+
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+// SEARCH FILTER
+document.getElementById("searchBtn")
+.addEventListener("click",function(){
+
+  let text =
+    document.getElementById("searchInput")
+    .value.toLowerCase();
+
+  let category =
+    document.getElementById("category")
+    .value.toLowerCase();
+
+  let location =
+    document.getElementById("locationInput")
+    .value.toLowerCase();
+
+  let dateRange =
+    document.getElementById("dateRange").value;
+
+  let start = null;
+  let end = null;
+
+  if(dateRange.includes("to")){
+
+    let d = dateRange.split(" to ");
+
+    start = new Date(d[0]);
+    end = new Date(d[1]);
+  }
+
+  document.querySelectorAll(".feed-card")
+  .forEach(item=>{
+
+    let title =
+      item.querySelector("h4")
+      .innerText.toLowerCase();
+
+    let content =
+      item.innerText.toLowerCase();
+
+    let matchText =
+      title.includes(text);
+
+    let matchCat =
+      category === "" ||
+      content.includes(category);
+
+    let matchLoc =
+      location === "" ||
+      content.includes(location);
+
+    let matchDate = true;
+
+    if(start && end){
+
+      let dateMatch =
+        item.innerText.match(/\d{4}-\d{2}-\d{2}/);
+
+      if(dateMatch){
+
+        let itemDate =
+          new Date(dateMatch[0]);
+
+        matchDate =
+          itemDate >= start &&
+          itemDate <= end;
+      }
+    }
+
+    item.style.display =
+      (matchText &&
+       matchCat &&
+       matchLoc &&
+       matchDate)
+
+       ? ""
+
+       : "none";
+  });
+
+});
+
+// VIEW
+function viewItem(i){
+
+  localStorage.setItem(
+    "selectedItem",
+    JSON.stringify(allItems[i])
+  );
+
+  window.location.href = "details.html";
+}
+
+// BUY
+function buyItem(name){
+  alert("🛒 " + name);
+}
+
+// LOGOUT
+function logout(){
+
+  localStorage.removeItem("user");
+
+  alert("Logged out");
+
+  window.location.href = "login.html";
+}
+
+// PROFILE
+function goProfile(){
+  window.location.href = "profile.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matched Items</title>
+
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    background:#f5f5f5;
+    margin:0;
+    padding:20px;
+}
+
+.header{
+    background:#49b8d7;
+    color:white;
+    padding:14px;
+    text-align:center;
+    font-size:20px;
+    position:relative;
+}
+
+.header h2{
+    margin:0;
+    font-size:20px;
+}
+
+.back-btn{
+    position:absolute;
+    left:15px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:22px;
+    cursor:pointer;
+}
+
+#matchesContainer{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    justify-content:center;
+    margin-top:20px;
+}
+
+.match-card{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    width:320px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+.image-row{
+    display:flex;
+    gap:10px;
+}
+
+.image-box{
+    width:50%;
+    text-align:center;
+}
+
+.image-box img{
+    width:100%;
+    height:150px;
+    object-fit:cover;
+    border-radius:8px;
+}
+
+.item-title{
+    text-align:center;
+    margin-top:15px;
+}
+
+.item-category{
+    text-align:center;
+    color:gray;
+}
+
+.whatsapp-btn{
+    width:100%;
+    padding:12px;
+    background:#25D366;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:15px;
+    margin-top:10px;
+}
+
+.no-match{
+    text-align:center;
+    font-size:18px;
+    margin-top:40px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <span class="back-btn" onclick="goHome()">←</span>
+    <h2>Matched Items</h2>
+</div>
+
+<!-- MATCHES -->
+<div id="matchesContainer"></div>
+
+<script>
+
+// ===============================
+// LOAD DATA
+// ===============================
+
+let lostItems =
+JSON.parse(localStorage.getItem("lostItems")) || [];
+
+let foundItems =
+JSON.parse(localStorage.getItem("foundItems")) || [];
+
+let container =
+document.getElementById("matchesContainer");
+
+// ===============================
+// ADMIN EMAIL CHECK
+// ===============================
+
+const adminEmail =
+"01fe24bcs136@kletech.ac.in";
+
+const loggedInEmail =
+localStorage.getItem("loggedInEmail");
+
+const isAdmin =
+loggedInEmail === adminEmail;
+// ===============================
+// HELPERS
+// ===============================
+
+function getName(item){
+
+    return (
+        item.title ||
+        item.itemName ||
+        item.name ||
+        ""
+    )
+    .toLowerCase()
+    .trim();
+}
+
+function getCategory(item){
+
+    return (
+        item.category || ""
+    )
+    .toLowerCase()
+    .trim();
+}
+
+function imageSimilar(img1, img2){
+
+    if(!img1 || !img2){
+        return false;
+    }
+
+    const n1 =
+    img1.split("/").pop().toLowerCase();
+
+    const n2 =
+    img2.split("/").pop().toLowerCase();
+
+    return (
+        n1.includes(n2) ||
+        n2.includes(n1)
+    );
+}
+
+// ===============================
+// MATCH LOGIC
+// ===============================
+
+function isMatch(lost, found){
+
+    const nameMatch =
+
+        getName(lost).includes(getName(found)) ||
+
+        getName(found).includes(getName(lost));
+
+    const categoryMatch =
+
+        getCategory(lost) ===
+        getCategory(found);
+
+    const imageMatch =
+
+        imageSimilar(
+            lost.image,
+            found.image
+        );
+
+    return (
+        (nameMatch && categoryMatch)
+        || imageMatch
+    );
+}
+
+// ===============================
+// FIND MATCHES
+// ===============================
+
+let matches = [];
+
+lostItems.forEach(lost => {
+
+    foundItems.forEach(found => {
+
+        if(isMatch(lost, found)){
+
+            let message =
+
+`Hello ${lost.name},
+
+Your lost item may have been found.
+
+Item: ${getName(lost)}
+Category: ${lost.category}
+
+Please check the Lost & Found app.`;
+
+            let whatsappURL =
+
+`https://wa.me/91${lost.contact}?text=${encodeURIComponent(message)}`;
+
+            matches.push({
+
+                lost,
+                found,
+                whatsappURL
+
+            });
+        }
+
+    });
+
+});
+
+// ===============================
+// DISPLAY MATCHES
+// ===============================
+
+if(matches.length === 0){
+
+    container.innerHTML =
+
+    `<p class="no-match">
+        No matches found
+    </p>`;
+}
+
+else{
+
+    matches.forEach(m => {
+
+        container.innerHTML += `
+
+        <div class="match-card">
+
+            <div class="image-row">
+
+                <div class="image-box">
+                    <img src="${m.lost.image || ''}">
+                    <p>Lost</p>
+                </div>
+
+                <div class="image-box">
+                    <img src="${m.found.image || ''}">
+                    <p>Found</p>
+                </div>
+
+            </div>
+
+            <h3 class="item-title">
+                ${getName(m.lost)}
+            </h3>
+
+            <p class="item-category">
+                ${m.lost.category || ''}
+            </p>
+
+            ${isAdmin ? `
+
+<a href="${m.whatsappURL}" target="_blank">
+
+    <button class="whatsapp-btn">
+        Send WhatsApp Message
+    </button>
+
+</a>
+
+` : ``}
+
+        </div>
+
+        `;
+    });
+}
+
+// ===============================
+// BACK BUTTON
+// ===============================
+
+function goHome(){
+
+    window.location.href = "home.html";
+}
+
+</script>
+
+</body>
+</html>

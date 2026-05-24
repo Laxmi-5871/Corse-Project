@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Checkout</title>
+
+<style>
+body{
+  font-family:Segoe UI;
+  background:#f5f5f5;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.box{
+  background:white;
+  padding:20px;
+  width:320px;
+  border-radius:10px;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  margin:10px 0;
+}
+
+button{
+  width:100%;
+  padding:10px;
+  background:#49b8d7;
+  color:white;
+  border:none;
+}
+
+/* QR hidden by default */
+#qrBox{
+  display:none;
+  text-align:center;
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Checkout</h2>
+
+<p id="item"></p>
+<p id="price"></p>
+
+<input id="name" placeholder="Your Name">
+<input id="address" placeholder="Address">
+<input id="phone" placeholder="Phone Number">
+
+<select id="payment">
+  <option value="">Select Payment</option>
+  <option value="cod">Cash on Delivery</option>
+  <option value="online">Online (QR)</option>
+</select>
+
+<!-- QR BOX -->
+<div id="qrBox">
+  <p>Scan QR to Pay</p>
+
+  <img src="image.png.jpeg" width="150">
+</div>
+
+<button onclick="placeOrder()">Place Order</button>
+
+</div>
+
+<script>
+
+/* GET ITEM DETAILS */
+let params = new URLSearchParams(window.location.search);
+
+let itemName = params.get("name") || "Item";
+let price = params.get("price") || "0";
+
+document.getElementById("item").innerText = "Item: " + itemName;
+document.getElementById("price").innerText = "Price: ₹" + price;
+
+/* 🔥 QR LOGIC */
+let paymentSelect = document.getElementById("payment");
+let qrBox = document.getElementById("qrBox");
+
+paymentSelect.addEventListener("change", function(){
+
+  if(this.value === "online"){
+    qrBox.style.display = "block";
+  } else {
+    qrBox.style.display = "none";
+  }
+
+});
+
+/* PLACE ORDER */
+function placeOrder(){
+
+  let n = document.getElementById("name").value;
+  let a = document.getElementById("address").value;
+  let p = document.getElementById("phone").value;
+  let pay = paymentSelect.value;
+
+  if(!n || !a || !p || !pay){
+    alert("Fill all details");
+    return;
+  }
+
+  // USER PHONE NUMBER
+  let userPhone = p;
+
+  // MESSAGE
+  let msg = encodeURIComponent(
+    "🎉 Your order has been placed successfully!\n\n" +
+    "Item: " + itemName +
+    "\nPrice: ₹" + price +
+    "\nPayment: " + pay +
+    "\n\nThank you for shopping with us!"
+  );
+
+  // OPEN WHATSAPP
+  window.open(
+    `https://wa.me/91${userPhone}?text=${msg}`,
+    "_blank"
+  );
+
+  alert("✅ Order placed successfully!");
+}
+
+
+</script> 
+
+</body>
+</html>
+ 

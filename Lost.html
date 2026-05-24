@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lost Items</title>
+
+<style>
+body{
+  font-family:Segoe UI;
+  margin:0;
+  background:#f8fafc;
+}
+
+/* HEADER */
+header{
+  background:#49b8d7;
+  color:white;
+  padding:14px;
+  text-align:center;
+  font-size:20px;
+  font-weight:600;
+  position:relative; /* IMPORTANT */
+}
+  .back-btn{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:22px;
+  cursor:pointer;
+}
+
+/* ADD BUTTON */
+.add-btn{
+  margin:20px auto;
+  display:block;
+  padding:10px 20px;
+  border:none;
+  background:#49b8d7;
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:500;
+  transition:0.2s;
+}
+
+.add-btn:hover{
+  background:#48cfe0;
+}
+
+/* GRID */
+.container{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:20px;
+  padding:20px;
+}
+
+/* CARD */
+.card{
+  background:white;
+  border-radius:16px;
+  padding:15px;
+  position:relative;
+  color:#111827;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  transition:0.2s;
+}
+
+.card:hover{
+  transform:translateY(-4px);
+}
+
+/* TAG */
+.tag{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:#49b8d7;
+  color:white;
+  padding:5px 10px;
+  border-radius:6px;
+  font-size:12px;
+  font-weight:500;
+}
+
+/* MENU */
+.menu-btn{
+  position:absolute;
+  top:10px;
+  right:10px;
+  background:#f3f4f6;
+  padding:8px;
+  border-radius:50%;
+  cursor:pointer;
+}
+
+/* IMAGE */
+.card img{
+  width:100%;
+  height:180px;
+  object-fit:contain;
+  margin-top:20px;
+}
+
+/* TEXT */
+.card h3{
+  margin:10px 0 5px;
+}
+
+.info{
+  font-size:14px;
+  color:#6b7280;
+  margin-bottom:5px;
+}
+
+/* BUTTON */
+.view-btn{
+  background:#49b8d7;
+  color:white;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  margin-top:10px;
+  width:100%;
+}
+
+.view-btn:hover{
+  background:#1d4ed8;
+}
+
+/* DROPDOWN */
+.dropdown{
+  position:absolute;
+  top:40px;
+  right:10px;
+  background:white;
+  border-radius:10px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+  z-index:10;
+}
+
+.dropdown button{
+  background:none;
+  border:none;
+  padding:10px;
+  text-align:left;
+  cursor:pointer;
+}
+
+.dropdown button:hover{
+  background:#f3f4f6;
+}
+</style>
+</head>
+
+<body>
+<header>
+  <span class="back-btn" onclick="goBack()">←</span>
+   Lost Items
+</header>
+<button class="add-btn" onclick="window.location.href='report-lost.html'">
+  ➕ Report Lost Item
+</button>
+
+<div class="container" id="container"></div>
+
+<script>
+
+/* ✅ LOST STORAGE */
+let allItems = JSON.parse(localStorage.getItem("lostItems")) || [];
+
+function loadItems(){
+  let container = document.getElementById("container");
+  container.innerHTML = "";
+
+  if(allItems.length === 0){
+    container.innerHTML = "<h3 style='padding:20px'>No lost items</h3>";
+    return;
+  }
+
+  allItems.forEach((item,index)=>{
+
+    let card = document.createElement("div");
+    card.className = "card";
+
+    card.innerHTML = `
+      <div class="tag">LOST</div>
+
+      <div class="menu-btn" onclick="toggleMenu(event, ${index})">⋮</div>
+
+      <img src="${item.image || 'https://via.placeholder.com/300'}">
+
+      <h3>${item.title}</h3>
+
+      <div class="info">📁 ${item.category}</div>
+      <div class="info">📍 ${item.location}</div>
+      <div class="info">📅 ${item.date || ""}</div>
+
+      <button class="view-btn" onclick="viewItem(${index})">👁 View</button>
+
+      <div class="dropdown" id="menu-${index}">
+        <button onclick="editItem(${index})">✏️ Edit</button>
+        <button onclick="deleteItem(${index})">🗑 Delete</button>
+        <button onclick="toggleLike(event, ${index})">
+          ${item.liked ? "❤️ Unlike" : "🤍 Like"}
+        </button>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+/* LIKE */
+function toggleLike(event, index){
+  event.stopPropagation();
+  allItems[index].liked = !allItems[index].liked;
+  localStorage.setItem("lostItems", JSON.stringify(allItems));
+  loadItems();
+}
+
+/* VIEW */
+function viewItem(index){
+  localStorage.setItem("selectedItem", JSON.stringify(allItems[index]));
+  window.location.href = "details.html";
+}
+
+/* MENU */
+function toggleMenu(event, index){
+  event.stopPropagation();
+  document.querySelectorAll(".dropdown").forEach(m => m.style.display = "none");
+  document.getElementById("menu-" + index).style.display = "flex";
+}
+
+/* CLOSE MENU */
+document.addEventListener("click", () => {
+  document.querySelectorAll(".dropdown").forEach(m => m.style.display = "none");
+});
+
+/* DELETE */
+function deleteItem(index){
+  if(confirm("Delete this item?")){
+    allItems.splice(index,1);
+    localStorage.setItem("lostItems", JSON.stringify(allItems));
+    loadItems();
+  }
+}
+
+/* EDIT */
+function editItem(index){
+  localStorage.setItem("editLostItem", JSON.stringify(allItems[index])); // ✅ FIXED
+  window.location.href = "report-lost.html";
+}
+window.onload = loadItems;
+  function goBack(){
+  window.location.href = "home.html";
+}
+
+</script>
+
+</body>
+</html>

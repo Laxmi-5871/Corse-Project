@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claim Item</title>
+
+<style>
+body{
+  font-family:Segoe UI;
+  margin:0;
+  background:#f8fafc;
+}
+
+header{
+  background:#49b8d7;
+  color:white;
+  padding:14px;
+  text-align:center;
+  font-size:20px;
+  position:relative;
+}
+
+.back-btn{
+  position:absolute;
+  left:15px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:22px;
+  cursor:pointer;
+}
+
+.container{
+  max-width:600px;
+  margin:30px auto;
+  background:white;
+  padding:25px;
+  border-radius:16px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+
+input, textarea{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border:1px solid #ccc;
+  border-radius:8px;
+  box-sizing:border-box;
+}
+
+textarea{
+  min-height:100px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#49b8d7;
+  color:white;
+  font-size:15px;
+  font-weight:600;
+}
+
+.error{
+  color:red;
+  font-size:12px;
+  display:none;
+}
+
+.info-box{
+  background:#eef6ff;
+  padding:10px;
+  border-radius:8px;
+  font-size:13px;
+  margin-bottom:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<span class="back-btn" onclick="goBack()">←</span>
+Claim Item Verification
+</header>
+
+<div class="container">
+
+<div class="info-box">
+⚠️ Please provide accurate details.
+False claims will be rejected.
+</div>
+
+<form id="claimForm">
+
+<input type="text" id="name"
+placeholder="Your Full Name">
+
+<div class="error" id="nameError"></div>
+
+<input type="text" id="phone"
+placeholder="Phone Number">
+
+<div class="error" id="phoneError"></div>
+
+<input type="text" id="verifyCode"
+placeholder="Verification Code">
+
+<div class="error" id="codeError"></div>
+
+<textarea id="proof"
+placeholder="Describe the item"></textarea>
+
+<div class="error" id="proofError"></div>
+
+<input type="file"
+id="image"
+accept="image/*">
+
+<div class="error" id="imageError"></div>
+
+<button type="submit">
+Submit Claim Request
+</button>
+
+</form>
+
+</div>
+
+<script>
+
+/* BACK */
+function goBack(){
+  window.history.back();
+}
+
+/* ITEM */
+let item =
+  JSON.parse(localStorage.getItem("selectedItem"));
+
+/* ERRORS */
+function setError(id,msg){
+
+  let el = document.getElementById(id);
+
+  el.innerText = msg;
+
+  el.style.display = "block";
+}
+
+function clearError(id){
+
+  document.getElementById(id)
+    .style.display = "none";
+}
+
+/* VALIDATE */
+function validate(){
+
+  let ok = true;
+
+  let name =
+    document.getElementById("name")
+    .value.trim();
+
+  let phone =
+    document.getElementById("phone")
+    .value.trim();
+
+  let code =
+    document.getElementById("verifyCode")
+    .value.trim();
+
+  let proof =
+    document.getElementById("proof")
+    .value.trim();
+
+  let file =
+    document.getElementById("image")
+    .files[0];
+
+  if(name.length < 3){
+
+    setError(
+      "nameError",
+      "Enter valid name"
+    );
+
+    ok = false;
+
+  } else {
+
+    clearError("nameError");
+
+  }
+
+  if(!/^[0-9]{10}$/.test(phone)){
+
+    setError(
+      "phoneError",
+      "Enter valid number"
+    );
+
+    ok = false;
+
+  } else {
+
+    clearError("phoneError");
+
+  }
+
+  if(code === ""){
+
+    setError(
+      "codeError",
+      "Enter verification code"
+    );
+
+    ok = false;
+
+  } else {
+
+    clearError("codeError");
+
+  }
+
+  if(proof.length < 5){
+
+    setError(
+      "proofError",
+      "Describe item properly"
+    );
+
+    ok = false;
+
+  } else {
+
+    clearError("proofError");
+
+  }
+
+  if(file && !file.type.startsWith("image/")){
+
+    setError(
+      "imageError",
+      "Only images allowed"
+    );
+
+    ok = false;
+
+  } else {
+
+    clearError("imageError");
+
+  }
+
+  return ok;
+}
+
+/* SUBMIT */
+document.getElementById("claimForm")
+.addEventListener("submit",function(e){
+
+  e.preventDefault();
+
+  if(!validate()) return;
+
+  let enteredCode =
+    document.getElementById("verifyCode")
+    .value.trim();
+
+  /* VERIFY */
+  if(!item ||
+     enteredCode !== item.verificationCode){
+
+    setError(
+      "codeError",
+      "❌ Invalid verification code"
+    );
+
+    return;
+  }
+
+  let file =
+    document.getElementById("image")
+    .files[0];
+
+  function saveClaim(imgData){
+
+    let claims =
+      JSON.parse(
+        localStorage.getItem("claims")
+      ) || [];
+
+    claims.push({
+
+      itemId: item.id,
+
+      itemTitle: item.title,
+
+      owner: item.name,
+
+      claimerName:
+        document.getElementById("name").value,
+
+      phone:
+        document.getElementById("phone").value,
+
+      proof:
+        document.getElementById("proof").value,
+
+      image: imgData,
+
+      status:"Pending",
+
+      date:new Date().toLocaleString()
+
+    });
+
+    localStorage.setItem(
+      "claims",
+      JSON.stringify(claims)
+    );
+
+    /* SAVE ACCESS */
+    localStorage.setItem(
+      "claimApproved_" + item.id,
+      "true"
+    );
+
+    alert(
+      "✅ Claim submitted successfully!\n\nNow you can directly Call or Message."
+    );
+
+    /* RETURN */
+    setTimeout(()=>{
+
+      window.location.href =
+        "details.html";
+
+    },1000);
+
+  }
+
+  if(file){
+
+    let reader = new FileReader();
+
+    reader.onload = e =>
+      saveClaim(e.target.result);
+
+    reader.readAsDataURL(file);
+
+  } else {
+
+    saveClaim("");
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
