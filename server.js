@@ -3,15 +3,21 @@ require("dotenv").config(); // MUST be first
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
 const cloudinary = require("./utils/cloudinary");
 const upload = require("./utils/upload");
 
 const app = express();
 
+// ===============================
 // Middleware
+// ===============================
 app.use(cors());
 app.use(express.json());
+
+// ✅ Serve ALL frontend files from root folder
+app.use(express.static(__dirname));
 
 // ===============================
 // Debug ENV (temporary check)
@@ -22,7 +28,7 @@ console.log("MONGO_URL:", process.env.MONGO_URL);
 // MongoDB Connection
 // ===============================
 if (!process.env.MONGO_URL) {
-  console.error("❌ MONGO_URL is missing in .env file");
+  console.error("❌ MONGO_URL is missing in environment variables");
   process.exit(1);
 }
 
@@ -32,10 +38,10 @@ mongoose
   .catch((err) => console.log("❌ MongoDB Error:", err));
 
 // ===============================
-// Test Route
+// HOME ROUTE (IMPORTANT)
 // ===============================
 app.get("/", (req, res) => {
-  res.send("Server is running 🚀");
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // ===============================
