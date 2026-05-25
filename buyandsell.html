@@ -6,7 +6,6 @@
 <title>Market</title>
 
 <style>
-/* SAME CSS — NO CHANGE */
 body{
   font-family:Segoe UI;
   margin:0;
@@ -185,6 +184,8 @@ input{
       <input type="text" id="title" placeholder="Item name" required>
       <input type="number" id="price" placeholder="Price (₹)" required>
       <input type="text" id="contact" placeholder="Location / Phone" required>
+      <!-- ADDED: email input, auto-filled from logged in user -->
+      <input type="email" id="sellerEmail" placeholder="Your email" required>
       <input type="file" id="image" accept="image/*">
       <button type="submit" class="submit-btn">Post</button>
     </form>
@@ -199,6 +200,16 @@ let marketItems = JSON.parse(localStorage.getItem("marketItems")) || [];
 /* SAVE */
 function saveItems(){
   localStorage.setItem("marketItems", JSON.stringify(marketItems));
+}
+
+/* AUTO FILL EMAIL when form opens */
+function openForm(){
+  document.getElementById("popup").style.display = "flex";
+  // auto fill email from logged in user
+  var currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  if(currentUser.email){
+    document.getElementById("sellerEmail").value = currentUser.email;
+  }
 }
 
 /* RENDER */
@@ -224,7 +235,6 @@ function renderItems(){
       <p>💰 ₹${item.price}</p>
       <p>📍 ${item.contact}</p>
 
-      <!-- 🔥 ONLY CHANGE -->
       <button class="buy-btn" onclick="buyNow(${item.id})">Purchase</button>
 
       <div class="dropdown" id="menu-${item.id}">
@@ -237,7 +247,7 @@ function renderItems(){
   });
 }
 
-/* 🔥 NEW FUNCTION ADDED */
+/* BUY - saves purchase with buyer email */
 function buyNow(id){
   const item = marketItems.find(i => i.id === id);
 
@@ -245,6 +255,20 @@ function buyNow(id){
     alert("Item not found");
     return;
   }
+
+  var currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  var purchases = JSON.parse(localStorage.getItem("purchasedItems") || "[]");
+  purchases.unshift({
+    id: Date.now(),
+    title: item.title,
+    price: item.price,
+    contact: item.contact,
+    img: item.img,
+    type: "buy",
+    email: currentUser.email || "",
+    date: new Date().toLocaleDateString()
+  });
+  localStorage.setItem("purchasedItems", JSON.stringify(purchases));
 
   window.location.href =
     "payment.html?name=" + encodeURIComponent(item.title) +
@@ -278,12 +302,8 @@ function editItem(id){
   document.getElementById("title").value = item.title;
   document.getElementById("price").value = item.price;
   document.getElementById("contact").value = item.contact;
+  document.getElementById("sellerEmail").value = item.email || "";
   openForm();
-}
-
-/* FORM */
-function openForm(){
-  document.getElementById("popup").style.display = "flex";
 }
 
 function closeForm(){
@@ -291,7 +311,7 @@ function closeForm(){
   document.getElementById("sellForm").reset();
 }
 
-/* SUBMIT */
+/* SUBMIT - saves email and type:"sell" */
 document.getElementById("sellForm").addEventListener("submit", function(e){
   e.preventDefault();
 
@@ -299,10 +319,11 @@ document.getElementById("sellForm").addEventListener("submit", function(e){
   const title = document.getElementById("title").value;
   const price = document.getElementById("price").value;
   const contact = document.getElementById("contact").value;
+  const email = document.getElementById("sellerEmail").value.trim().toLowerCase();
 
   if(id){
     const index = marketItems.findIndex(i => i.id == id);
-    marketItems[index] = {...marketItems[index], title, price, contact};
+    marketItems[index] = {...marketItems[index], title, price, contact, email};
     saveItems();
     renderItems();
     closeForm();
@@ -316,7 +337,9 @@ document.getElementById("sellForm").addEventListener("submit", function(e){
         title,
         price,
         contact,
-        img: reader.result
+        img: reader.result,
+        type: "sell",
+        email: email
       });
       saveItems();
       renderItems();
