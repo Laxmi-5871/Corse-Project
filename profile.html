@@ -1095,33 +1095,38 @@ function getItems(type) {
 
   return merged;
 }
-
 function itemBelongsToUser(item, userEmail) {
-  if (!userEmail) return true;
+
+  if (!userEmail) return false;
+
   var email = userEmail.toLowerCase().trim();
-  var fields = ["email","userEmail","postedBy","ownerEmail","user","reportedBy","submittedBy",
-                "createdBy","author","seller","sellerEmail","buyer","buyerEmail",
-                "contactEmail","contact_email","posted_by","owner"];
-  var anyEmailFound = false;
-  for (var f = 0; f < fields.length; f++) {
-    var val = item[fields[f]];
-    if (val && typeof val === "string" && val.trim() !== "") {
-      anyEmailFound = true;
-      if (val.toLowerCase().trim() === email) return true;
+
+  var fields = [
+    "email",
+    "userEmail",
+    "postedBy",
+    "ownerEmail",
+    "reportedBy",
+    "submittedBy",
+    "createdBy",
+    "author",
+    "sellerEmail",
+    "buyerEmail"
+  ];
+
+  for (var i = 0; i < fields.length; i++) {
+
+    var val = item[fields[i]];
+
+    if (
+      val &&
+      typeof val === "string" &&
+      val.toLowerCase().trim() === email
+    ) {
+      return true;
     }
   }
-  var nested = ["user","owner","poster","seller","buyer"];
-  for (var n = 0; n < nested.length; n++) {
-    var obj = item[nested[n]];
-    if (obj && typeof obj === "object") {
-      var objEmail = obj.email || obj.userEmail || "";
-      if (objEmail && objEmail.trim() !== "") {
-        anyEmailFound = true;
-        if (objEmail.toLowerCase().trim() === email) return true;
-      }
-    }
-  }
-  if (!anyEmailFound) return true;
+
   return false;
 }
 
@@ -1205,7 +1210,7 @@ function renderList(containerId, items, type) {
     var location = item.location || item.place      || item.foundPlace || item.lostPlace  ||
                    item.area     || item.spot       || "";
     var status   = item.status   || item.itemStatus || "";
-    var priceStr  = (type === "sell" && price) ? " · ₹" + price : "";
+    var priceStr  = ((type === "sell" || type === "buy") && price) ? " · ₹" + price : "";
     var locStr    = location ? " · 📍" + location : "";
     var statusStr = status   ? " · "   + status   : "";
     var meta = [category, date].filter(Boolean).join(" · ") + priceStr + locStr + statusStr;
