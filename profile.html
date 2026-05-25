@@ -1020,7 +1020,9 @@
 })();
 
 
-// ── getItems: reads all possible localStorage keys for each type ──
+// ══════════════════════════════════════════════════════════
+// getItems — collects raw items from localStorage by type
+// ══════════════════════════════════════════════════════════
 function getItems(type) {
   var keyMap = {
     lost: [
@@ -1032,124 +1034,149 @@ function getItems(type) {
       "foundReports","found_reports","allFoundItems"
     ],
     sell: [
-      // market.html stores sell listings under "marketItems"
-      "marketItems",
+      // NOTE: "marketItems" is handled separately below with type-filtering
       "sellItems","sell_items","mySellItems","listings","sellListings",
       "sell_listings","allSellItems","marketplace","sellPosts","sell_posts",
       "marketplaceItems","marketplace_items","forSale","for_sale",
-      "sellData","sell_data","products","itemsForSale","items_for_sale",
-      "buySellItems","buysell_items","campusMarket","campus_market",
+      "sellData","sell_data","itemsForSale","items_for_sale",
       "sellList","sell_list","postedItems","posted_items"
     ],
     buy: [
-      // market.html stores purchases under "purchasedItems"
-      "purchasedItems",
+      // NOTE: "purchasedItems" is handled separately below
       "buyItems","buy_items","myBuyItems","buyRequests","buy_requests",
       "purchases","allBuyItems","buyPosts","buy_posts","wantedItems",
       "wanted_items","buyList","buy_list","myPurchases","my_purchases",
       "buyData","buy_data","interestedItems","interested_items",
-      "buySellItems","buysell_items","orderedItems","ordered_items",
-      "buyOrders","buy_orders","purchaseHistory","purchase_history"
+      "orderedItems","ordered_items","buyOrders","buy_orders",
+      "purchaseHistory","purchase_history"
     ]
   };
 
-  var keys = keyMap[type] || [];
   var merged = [];
   var seen = {};
 
-  // 1. check all known keys
-  keys.forEach(function(k) {
+  function addItem(item) {
+    if (!item || typeof item !== "object") return;
+    var sig = item.id || item._id || JSON.stringify(item);
+    if (!seen[sig]) { seen[sig] = true; merged.push(item); }
+  }
+
+  // 1. Read from dedicated per-type named keys
+  (keyMap[type] || []).forEach(function(k) {
     var raw = localStorage.getItem(k);
     if (!raw) return;
     try {
       var parsed = JSON.parse(raw);
       var arr = Array.isArray(parsed) ? parsed : Object.values(parsed);
-      arr.forEach(function(item) {
-        if (!item || typeof item !== "object") return;
-        var sig = item.id || item._id || JSON.stringify(item);
-        if (!seen[sig]) { seen[sig] = true; merged.push(item); }
-      });
+      arr.forEach(addItem);
     } catch(e) {}
   });
 
-  // 2. auto-scan ALL localStorage keys that contain the type word
-  var typeWord = type;
+  // 2. Handle shared "marketItems" key — filter by item.type or item.listingType
+  //    so sell and buy don't bleed into each other from this shared pool.
+  if (type === "sell") {
+    var rawMarket = localStorage.getItem("marketItems");
+    if (rawMarket) {
+      try {
+        var marketArr = JSON.parse(rawMarket);
+        if (Array.isArray(marketArr)) {
+          marketArr.forEach(function(item) {
+            // Include if type field indicates a sell listing,
+            // OR if no type field at all (treat as sell)
+            var t = ((item.type || item.listingType || "sell") + "").toLowerCase();
+            if (t === "sell" || t === "listing" || t === "forsale" || t === "for_sale") {
+              addItem(item);
+            }
+          });
+        }
+      } catch(e) {}
+    }
+  }
+
+  // 3. Handle "purchasedItems" for buy side
+  if (type === "buy") {
+    var rawPurchased = localStorage.getItem("purchasedItems");
+    if (rawPurchased) {
+      try {
+        var pArr = JSON.parse(rawPurchased);
+        if (Array.isArray(pArr)) pArr.forEach(addItem);
+      } catch(e) {}
+    }
+  }
+
+  // 4. Auto-scan ALL remaining localStorage keys that contain the type word
+  //    (skip keys already handled above and the shared pooled keys)
+  var skipKeys = (keyMap[type] || []).concat(["marketItems","purchasedItems"]);
   for (var i = 0; i < localStorage.length; i++) {
     var k = localStorage.key(i);
     if (!k) continue;
-    if (keys.indexOf(k) !== -1) continue;
-    if (k.toLowerCase().indexOf(typeWord) === -1) continue;
+    if (skipKeys.indexOf(k) !== -1) continue;
+    if (k.toLowerCase().indexOf(type) === -1) continue;
     try {
       var raw = localStorage.getItem(k);
       if (!raw) continue;
       var parsed = JSON.parse(raw);
-      var arr = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === "object" ? Object.values(parsed) : null);
+      var arr = Array.isArray(parsed)
+        ? parsed
+        : (parsed && typeof parsed === "object" ? Object.values(parsed) : null);
       if (!arr) continue;
-      arr.forEach(function(item) {
-        if (!item || typeof item !== "object") return;
-        var sig = item.id || item._id || JSON.stringify(item);
-        if (!seen[sig]) { seen[sig] = true; merged.push(item); }
-      });
+      arr.forEach(addItem);
     } catch(e) {}
   }
 
   return merged;
 }
 
-// ── itemBelongsToUser: checks all email fields including sellerEmail/buyerEmail ──
-function itemBelongsToUser(item, userEmail, type) {
-  if (!userEmail) return true;
+// ══════════════════════════════════════════════════════════
+// itemBelongsToUser
+// Returns true ONLY if the item has an email field that
+// matches the logged-in user's email.
+// *** NO fallback "return true" — strict ownership check ***
+// ══════════════════════════════════════════════════════════
+function itemBelongsToUser(item, userEmail) {
+  if (!userEmail) return false;
   var email = userEmail.toLowerCase().trim();
 
-  // For sell items from marketItems: check sellerEmail and email fields
-  // For buy items from purchasedItems: check buyerEmail and email fields
+  // All flat email-like fields to check
   var fields = [
-    "email","userEmail","postedBy","ownerEmail","user","reportedBy","submittedBy",
+    "email","userEmail","postedBy","ownerEmail","reportedBy","submittedBy",
     "createdBy","author","seller","sellerEmail","buyer","buyerEmail",
-    "contactEmail","contact_email","posted_by","owner"
+    "contactEmail","contact_email","posted_by","owner","user"
   ];
 
-  var anyEmailFound = false;
   for (var f = 0; f < fields.length; f++) {
     var val = item[fields[f]];
     if (val && typeof val === "string" && val.trim() !== "") {
-      anyEmailFound = true;
       if (val.toLowerCase().trim() === email) return true;
     }
   }
 
-  // check nested user/owner/seller/buyer objects
+  // Check nested objects (e.g. item.seller = { email: "..." })
   var nested = ["user","owner","poster","seller","buyer"];
   for (var n = 0; n < nested.length; n++) {
     var obj = item[nested[n]];
     if (obj && typeof obj === "object") {
       var objEmail = obj.email || obj.userEmail || "";
-      if (objEmail && objEmail.trim() !== "") {
-        anyEmailFound = true;
-        if (objEmail.toLowerCase().trim() === email) return true;
-      }
+      if (objEmail && objEmail.toLowerCase().trim() === email) return true;
     }
   }
 
-  // For marketItems (sell), filter by type field too:
-  // if item has type:"sell" but no email match, exclude it
-  // if item has no email fields at all, include it (legacy data)
-  if (!anyEmailFound) return true;
+  // No email field matched → item does NOT belong to this user
   return false;
 }
 
+// ══════════════════════════════════════════════════════════
+// getMyItems — filtered list for the logged-in user only
+// ══════════════════════════════════════════════════════════
 function getMyItems(type) {
   var user = null;
   try { user = JSON.parse(localStorage.getItem("user") || "null"); } catch(e) {}
   if (!user) return [];
   var userEmail = (user.email || "").toLowerCase().trim();
+  if (!userEmail) return [];
 
-  var allItems = getItems(type);
-
-  // For sell: from marketItems, items where sellerEmail matches
-  // For buy: from purchasedItems, items where buyerEmail/email matches
-  return allItems.filter(function(item) {
-    return itemBelongsToUser(item, userEmail, type);
+  return getItems(type).filter(function(item) {
+    return itemBelongsToUser(item, userEmail);
   });
 }
 
@@ -1217,16 +1244,16 @@ function renderList(containerId, items, type) {
     var card = document.createElement("div");
     card.className = "item-card";
     var title    = item.title    || item.itemName   || item.name       || item.item_name  || "Untitled";
-    var category = item.category || item.type       || item.itemType   || item.item_type  || "";
+    var category = item.category || item.itemType   || item.item_type  || "";
     var date     = item.date     || item.lostDate   || item.foundDate  || item.postedDate ||
                    item.createdAt|| item.created_at || item.reportedOn || "";
     var price    = item.price    || item.amount     || item.sellingPrice || "";
     var location = item.location || item.place      || item.foundPlace || item.lostPlace  ||
-                   item.area     || item.spot       || item.contact    || "";
+                   item.area     || item.spot       || "";
     var status   = item.status   || item.itemStatus || "";
-    // For sell items, "type" field is "sell" — don't show that as category
-    if (category === "sell" || category === "buy") category = "";
-    var priceStr  = (price) ? " · ₹" + price : "";
+    // Don't show "sell" or "buy" as a category label
+    if (category === "sell" || category === "buy" || category === "listing") category = "";
+    var priceStr  = price    ? " · ₹" + price    : "";
     var locStr    = location ? " · 📍" + location : "";
     var statusStr = status   ? " · "   + status   : "";
     var meta = [category, date].filter(Boolean).join(" · ") + priceStr + locStr + statusStr;
