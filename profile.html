@@ -1020,8 +1020,7 @@
 })();
 
 
-// ── THE KEY FIX: massively expanded key lists for sell and buy ──
-// Also dumps ALL localStorage keys and tries to auto-detect sell/buy arrays
+// ── getItems: reads all possible localStorage keys for each type ──
 function getItems(type) {
   var keyMap = {
     lost: [
@@ -1033,6 +1032,8 @@ function getItems(type) {
       "foundReports","found_reports","allFoundItems"
     ],
     sell: [
+      // market.html stores sell listings under "marketItems"
+      "marketItems",
       "sellItems","sell_items","mySellItems","listings","sellListings",
       "sell_listings","allSellItems","marketplace","sellPosts","sell_posts",
       "marketplaceItems","marketplace_items","forSale","for_sale",
@@ -1041,6 +1042,8 @@ function getItems(type) {
       "sellList","sell_list","postedItems","posted_items"
     ],
     buy: [
+      // market.html stores purchases under "purchasedItems"
+      "purchasedItems",
       "buyItems","buy_items","myBuyItems","buyRequests","buy_requests",
       "purchases","allBuyItems","buyPosts","buy_posts","wantedItems",
       "wanted_items","buyList","buy_list","myPurchases","my_purchases",
@@ -1069,15 +1072,12 @@ function getItems(type) {
     } catch(e) {}
   });
 
-  // 2. auto-scan ALL localStorage keys for sell/buy
-  // looks for any key containing the type word that we haven't checked yet
-  var typeWord = type; // "sell" or "buy" or "lost" or "found"
+  // 2. auto-scan ALL localStorage keys that contain the type word
+  var typeWord = type;
   for (var i = 0; i < localStorage.length; i++) {
     var k = localStorage.key(i);
     if (!k) continue;
-    // skip if already in our keyMap
     if (keys.indexOf(k) !== -1) continue;
-    // check if the key name contains the type word (case-insensitive)
     if (k.toLowerCase().indexOf(typeWord) === -1) continue;
     try {
       var raw = localStorage.getItem(k);
@@ -1095,38 +1095,46 @@ function getItems(type) {
 
   return merged;
 }
-function itemBelongsToUser(item, userEmail) {
 
-  if (!userEmail) return false;
-
+// ── itemBelongsToUser: checks all email fields including sellerEmail/buyerEmail ──
+function itemBelongsToUser(item, userEmail, type) {
+  if (!userEmail) return true;
   var email = userEmail.toLowerCase().trim();
 
+  // For sell items from marketItems: check sellerEmail and email fields
+  // For buy items from purchasedItems: check buyerEmail and email fields
   var fields = [
-    "email",
-    "userEmail",
-    "postedBy",
-    "ownerEmail",
-    "reportedBy",
-    "submittedBy",
-    "createdBy",
-    "author",
-    "sellerEmail",
-    "buyerEmail"
+    "email","userEmail","postedBy","ownerEmail","user","reportedBy","submittedBy",
+    "createdBy","author","seller","sellerEmail","buyer","buyerEmail",
+    "contactEmail","contact_email","posted_by","owner"
   ];
 
-  for (var i = 0; i < fields.length; i++) {
-
-    var val = item[fields[i]];
-
-    if (
-      val &&
-      typeof val === "string" &&
-      val.toLowerCase().trim() === email
-    ) {
-      return true;
+  var anyEmailFound = false;
+  for (var f = 0; f < fields.length; f++) {
+    var val = item[fields[f]];
+    if (val && typeof val === "string" && val.trim() !== "") {
+      anyEmailFound = true;
+      if (val.toLowerCase().trim() === email) return true;
     }
   }
 
+  // check nested user/owner/seller/buyer objects
+  var nested = ["user","owner","poster","seller","buyer"];
+  for (var n = 0; n < nested.length; n++) {
+    var obj = item[nested[n]];
+    if (obj && typeof obj === "object") {
+      var objEmail = obj.email || obj.userEmail || "";
+      if (objEmail && objEmail.trim() !== "") {
+        anyEmailFound = true;
+        if (objEmail.toLowerCase().trim() === email) return true;
+      }
+    }
+  }
+
+  // For marketItems (sell), filter by type field too:
+  // if item has type:"sell" but no email match, exclude it
+  // if item has no email fields at all, include it (legacy data)
+  if (!anyEmailFound) return true;
   return false;
 }
 
@@ -1134,8 +1142,14 @@ function getMyItems(type) {
   var user = null;
   try { user = JSON.parse(localStorage.getItem("user") || "null"); } catch(e) {}
   if (!user) return [];
-  return getItems(type).filter(function(item) {
-    return itemBelongsToUser(item, user.email || "");
+  var userEmail = (user.email || "").toLowerCase().trim();
+
+  var allItems = getItems(type);
+
+  // For sell: from marketItems, items where sellerEmail matches
+  // For buy: from purchasedItems, items where buyerEmail/email matches
+  return allItems.filter(function(item) {
+    return itemBelongsToUser(item, userEmail, type);
   });
 }
 
@@ -1208,9 +1222,11 @@ function renderList(containerId, items, type) {
                    item.createdAt|| item.created_at || item.reportedOn || "";
     var price    = item.price    || item.amount     || item.sellingPrice || "";
     var location = item.location || item.place      || item.foundPlace || item.lostPlace  ||
-                   item.area     || item.spot       || "";
+                   item.area     || item.spot       || item.contact    || "";
     var status   = item.status   || item.itemStatus || "";
-    var priceStr  = ((type === "sell" || type === "buy") && price) ? " · ₹" + price : "";
+    // For sell items, "type" field is "sell" — don't show that as category
+    if (category === "sell" || category === "buy") category = "";
+    var priceStr  = (price) ? " · ₹" + price : "";
     var locStr    = location ? " · 📍" + location : "";
     var statusStr = status   ? " · "   + status   : "";
     var meta = [category, date].filter(Boolean).join(" · ") + priceStr + locStr + statusStr;
@@ -1363,6 +1379,7 @@ window.addEventListener("storage", function(e) {
     "sell_listings","buy_requests","marketplace",
     "sellPosts","buyPosts","wantedItems","wanted_items",
     "allLostItems","allFoundItems","allSellItems","allBuyItems",
+    "marketItems","purchasedItems",
     "user","profileExtras"
   ];
   if (watchedKeys.indexOf(e.key) !== -1) { refreshCounts(); }
