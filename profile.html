@@ -1,6 +1,3 @@
-Here is the complete written code:Here is the full complete code — copy everything below and paste it into your `profile.html` file on GitHub:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -934,8 +931,11 @@ Here is the complete written code:Here is the full complete code — copy everyt
 <!-- ════════════════════ SCRIPTS ════════════════════ -->
 <script>
 (function () {
-  var user   = JSON.parse(localStorage.getItem("user")   || "null");
-  var extras = JSON.parse(localStorage.getItem("profileExtras") || "{}");
+
+  var user   = null;
+  var extras = {};
+  try { user   = JSON.parse(localStorage.getItem("user")          || "null"); } catch(e) {}
+  try { extras = JSON.parse(localStorage.getItem("profileExtras") || "{}");   } catch(e) {}
 
   if (!user) {
     alert("Please login first");
@@ -943,22 +943,33 @@ Here is the complete written code:Here is the full complete code — copy everyt
     return;
   }
 
-  var name = "";
-  if (extras.email && extras.email === user.email && extras.name) name = extras.name;
-  if (!name) name = user.name || user.username || user.fullName || user.displayName || "";
-  if (!name && user.email) name = user.email.split("@")[0];
-  if (!name) name = "Student";
+  function resolveName() {
+    if (extras.name && extras.name.trim()) return extras.name.trim();
+    var fields = ["name", "username", "fullName", "displayName"];
+    for (var i = 0; i < fields.length; i++) {
+      if (user[fields[i]] && String(user[fields[i]]).trim()) return String(user[fields[i]]).trim();
+    }
+    if (user.email) return user.email.split("@")[0];
+    return "Student";
+  }
 
-  document.getElementById("heroName").innerText  = "👋 Hi, " + name;
+  var displayName = resolveName();
+
+  document.getElementById("heroName").innerText  = "👋 Hi, " + displayName;
   document.getElementById("heroEmail").innerText = user.email || "";
 
   var usnEl = document.getElementById("heroUSN");
-  if (extras.usn) { usnEl.innerText = extras.usn; usnEl.style.display = "inline-block"; }
+  if (extras.usn && extras.usn.trim()) {
+    usnEl.innerText = extras.usn.trim();
+    usnEl.style.display = "inline-block";
+  } else {
+    usnEl.style.display = "none";
+  }
 
   var deptYear = [];
-  if (extras.dept) deptYear.push(extras.dept);
-  if (extras.year) deptYear.push(extras.year);
-  if (deptYear.length) document.getElementById("heroDeptYear").innerText = deptYear.join(" · ");
+  if (extras.dept && extras.dept.trim()) deptYear.push(extras.dept.trim());
+  if (extras.year && extras.year.trim()) deptYear.push(extras.year.trim());
+  document.getElementById("heroDeptYear").innerText = deptYear.join(" · ");
 
   document.getElementById("editName").value   = extras.name   || "";
   document.getElementById("editEmail").value  = user.email    || "";
@@ -968,88 +979,180 @@ Here is the complete written code:Here is the full complete code — copy everyt
 
   var deptSel = document.getElementById("editDept");
   var yearSel = document.getElementById("editYear");
-  for (var i = 0; i < deptSel.options.length; i++) {
-    if (deptSel.options[i].text === extras.dept) { deptSel.selectedIndex = i; break; }
+  if (extras.dept) {
+    for (var i = 0; i < deptSel.options.length; i++) {
+      if (deptSel.options[i].text === extras.dept) { deptSel.selectedIndex = i; break; }
+    }
   }
-  for (var j = 0; j < yearSel.options.length; j++) {
-    if (yearSel.options[j].text === extras.year) { yearSel.selectedIndex = j; break; }
+  if (extras.year) {
+    for (var j = 0; j < yearSel.options.length; j++) {
+      if (yearSel.options[j].text === extras.year) { yearSel.selectedIndex = j; break; }
+    }
   }
 
-  var pay = JSON.parse(localStorage.getItem("paymentData") || "{}");
-  if (pay.upi)        { document.getElementById("payUPI").value    = pay.upi;      document.getElementById("upiLinked").style.display  = "inline-flex"; }
-  if (pay.holder)       document.getElementById("payHolder").value  = pay.holder;
-  if (pay.acc)          document.getElementById("payAcc").value      = pay.acc;
-  if (pay.ifsc)         document.getElementById("payIFSC").value     = pay.ifsc;
-  if (pay.bankName)     document.getElementById("payBank").value     = pay.bankName;
-  if (pay.cashLoc)      document.getElementById("payCashLoc").value  = pay.cashLoc;
-  if (pay.cashTime)     document.getElementById("payCashTime").value = pay.cashTime;
-  if (pay.bankLinked)   document.getElementById("bankLinked").style.display = "inline-flex";
+  var pay = {};
+  try { pay = JSON.parse(localStorage.getItem("paymentData") || "{}"); } catch(e) {}
+  if (pay.upi)      { document.getElementById("payUPI").value    = pay.upi;      document.getElementById("upiLinked").style.display  = "inline-flex"; }
+  if (pay.holder)     document.getElementById("payHolder").value  = pay.holder;
+  if (pay.acc)        document.getElementById("payAcc").value      = pay.acc;
+  if (pay.ifsc)       document.getElementById("payIFSC").value     = pay.ifsc;
+  if (pay.bankName)   document.getElementById("payBank").value     = pay.bankName;
+  if (pay.cashLoc)    document.getElementById("payCashLoc").value  = pay.cashLoc;
+  if (pay.cashTime)   document.getElementById("payCashTime").value = pay.cashTime;
+  if (pay.bankLinked) document.getElementById("bankLinked").style.display = "inline-flex";
+
+  var savedLang = localStorage.getItem("appLang");
+  if (savedLang) {
+    document.getElementById("currentLang").innerText = savedLang;
+    document.querySelectorAll(".lang-opt").forEach(function(opt) {
+      var span = opt.querySelector("span");
+      if (span && span.innerText === savedLang) opt.classList.add("selected");
+      else opt.classList.remove("selected");
+    });
+  }
 
   refreshCounts();
   renderTxnList("payTxnList");
   renderTxnList("txnList");
 
-  document.getElementById("contactName").value  = name;
+  document.getElementById("contactName").value  = displayName;
   document.getElementById("contactEmail").value = user.email || "";
 })();
 
-// ── Helper: get items trying multiple possible localStorage key names ──
+
+// ── THE KEY FIX: massively expanded key lists for sell and buy ──
+// Also dumps ALL localStorage keys and tries to auto-detect sell/buy arrays
 function getItems(type) {
   var keyMap = {
-    lost:  ["lostItems",  "lost_items",  "myLostItems",  "reportedLost"],
-    found: ["foundItems", "found_items", "myFoundItems", "reportedFound"],
-    sell:  ["sellItems",  "sell_items",  "mySellItems",  "listings",    "sellListings"],
-    buy:   ["buyItems",   "buy_items",   "myBuyItems",   "buyRequests", "purchases"]
+    lost: [
+      "lostItems","lost_items","myLostItems","reportedLost",
+      "lostReports","lost_reports","allLostItems"
+    ],
+    found: [
+      "foundItems","found_items","myFoundItems","reportedFound",
+      "foundReports","found_reports","allFoundItems"
+    ],
+    sell: [
+      "sellItems","sell_items","mySellItems","listings","sellListings",
+      "sell_listings","allSellItems","marketplace","sellPosts","sell_posts",
+      "marketplaceItems","marketplace_items","forSale","for_sale",
+      "sellData","sell_data","products","itemsForSale","items_for_sale",
+      "buySellItems","buysell_items","campusMarket","campus_market",
+      "sellList","sell_list","postedItems","posted_items"
+    ],
+    buy: [
+      "buyItems","buy_items","myBuyItems","buyRequests","buy_requests",
+      "purchases","allBuyItems","buyPosts","buy_posts","wantedItems",
+      "wanted_items","buyList","buy_list","myPurchases","my_purchases",
+      "buyData","buy_data","interestedItems","interested_items",
+      "buySellItems","buysell_items","orderedItems","ordered_items",
+      "buyOrders","buy_orders","purchaseHistory","purchase_history"
+    ]
   };
+
   var keys = keyMap[type] || [];
-  for (var k = 0; k < keys.length; k++) {
-    var raw = localStorage.getItem(keys[k]);
-    if (raw) {
-      try {
-        var parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch(e) {}
+  var merged = [];
+  var seen = {};
+
+  // 1. check all known keys
+  keys.forEach(function(k) {
+    var raw = localStorage.getItem(k);
+    if (!raw) return;
+    try {
+      var parsed = JSON.parse(raw);
+      var arr = Array.isArray(parsed) ? parsed : Object.values(parsed);
+      arr.forEach(function(item) {
+        if (!item || typeof item !== "object") return;
+        var sig = item.id || item._id || JSON.stringify(item);
+        if (!seen[sig]) { seen[sig] = true; merged.push(item); }
+      });
+    } catch(e) {}
+  });
+
+  // 2. auto-scan ALL localStorage keys for sell/buy
+  // looks for any key containing the type word that we haven't checked yet
+  var typeWord = type; // "sell" or "buy" or "lost" or "found"
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (!k) continue;
+    // skip if already in our keyMap
+    if (keys.indexOf(k) !== -1) continue;
+    // check if the key name contains the type word (case-insensitive)
+    if (k.toLowerCase().indexOf(typeWord) === -1) continue;
+    try {
+      var raw = localStorage.getItem(k);
+      if (!raw) continue;
+      var parsed = JSON.parse(raw);
+      var arr = Array.isArray(parsed) ? parsed : (parsed && typeof parsed === "object" ? Object.values(parsed) : null);
+      if (!arr) continue;
+      arr.forEach(function(item) {
+        if (!item || typeof item !== "object") return;
+        var sig = item.id || item._id || JSON.stringify(item);
+        if (!seen[sig]) { seen[sig] = true; merged.push(item); }
+      });
+    } catch(e) {}
+  }
+
+  return merged;
+}
+
+function itemBelongsToUser(item, userEmail) {
+  if (!userEmail) return true;
+  var email = userEmail.toLowerCase().trim();
+  var fields = ["email","userEmail","postedBy","ownerEmail","user","reportedBy","submittedBy",
+                "createdBy","author","seller","sellerEmail","buyer","buyerEmail",
+                "contactEmail","contact_email","posted_by","owner"];
+  var anyEmailFound = false;
+  for (var f = 0; f < fields.length; f++) {
+    var val = item[fields[f]];
+    if (val && typeof val === "string" && val.trim() !== "") {
+      anyEmailFound = true;
+      if (val.toLowerCase().trim() === email) return true;
     }
   }
-  return [];
+  var nested = ["user","owner","poster","seller","buyer"];
+  for (var n = 0; n < nested.length; n++) {
+    var obj = item[nested[n]];
+    if (obj && typeof obj === "object") {
+      var objEmail = obj.email || obj.userEmail || "";
+      if (objEmail && objEmail.trim() !== "") {
+        anyEmailFound = true;
+        if (objEmail.toLowerCase().trim() === email) return true;
+      }
+    }
+  }
+  if (!anyEmailFound) return true;
+  return false;
 }
 
-// ── Helper: check if item belongs to current user ──
-function itemBelongsToUser(item, userEmail) {
-  return (
-    item.email      === userEmail ||
-    item.userEmail  === userEmail ||
-    item.postedBy   === userEmail ||
-    item.ownerEmail === userEmail ||
-    item.user       === userEmail
-  );
+function getMyItems(type) {
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem("user") || "null"); } catch(e) {}
+  if (!user) return [];
+  return getItems(type).filter(function(item) {
+    return itemBelongsToUser(item, user.email || "");
+  });
 }
 
-// ── Refresh stat counts and menu badges ──
 function refreshCounts() {
-  var user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user) return;
-  var myEmail = user.email;
-
-  var cL = getItems("lost").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
-  var cF = getItems("found").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
-  var cS = getItems("sell").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
-  var cB = getItems("buy").filter(function(i){ return itemBelongsToUser(i, myEmail); }).length;
-
+  var cL = getMyItems("lost").length;
+  var cF = getMyItems("found").length;
+  var cS = getMyItems("sell").length;
+  var cB = getMyItems("buy").length;
   document.getElementById("cntLost").innerText  = cL;
   document.getElementById("cntFound").innerText = cF;
   document.getElementById("cntSell").innerText  = cS;
   document.getElementById("cntBuy").innerText   = cB;
-
-  var bL = document.getElementById("badgeLost");
-  var bF = document.getElementById("badgeFound");
-  var bS = document.getElementById("badgeSell");
-  var bB = document.getElementById("badgeBuy");
-
-  if (cL) { bL.innerText = cL + " item" + (cL>1?"s":""); bL.style.display = "inline-block"; } else { bL.style.display = "none"; }
-  if (cF) { bF.innerText = cF + " item" + (cF>1?"s":""); bF.style.display = "inline-block"; } else { bF.style.display = "none"; }
-  if (cS) { bS.innerText = cS + " item" + (cS>1?"s":""); bS.style.display = "inline-block"; } else { bS.style.display = "none"; }
-  if (cB) { bB.innerText = cB + " item" + (cB>1?"s":""); bB.style.display = "inline-block"; } else { bB.style.display = "none"; }
+  function setBadge(id, count) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (count > 0) { el.innerText = count + " item" + (count > 1 ? "s" : ""); el.style.display = "inline-block"; }
+    else { el.style.display = "none"; }
+  }
+  setBadge("badgeLost",  cL);
+  setBadge("badgeFound", cF);
+  setBadge("badgeSell",  cS);
+  setBadge("badgeBuy",   cB);
 }
 
 function openPage(id) {
@@ -1057,15 +1160,10 @@ function openPage(id) {
   if (!el) return;
   el.classList.add("active");
   el.scrollTop = 0;
-
-  var user = JSON.parse(localStorage.getItem("user") || "null");
-  if (!user) return;
-  var myEmail = user.email;
-
-  if (id === "lostPage")  renderList("myLostList",  getItems("lost").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "lost");
-  if (id === "foundPage") renderList("myFoundList", getItems("found").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "found");
-  if (id === "sellPage")  renderList("mySellList",  getItems("sell").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "sell");
-  if (id === "buyPage")   renderList("myBuyList",   getItems("buy").filter(function(i){ return itemBelongsToUser(i, myEmail); }), "buy");
+  if (id === "lostPage")  renderList("myLostList",  getMyItems("lost"),  "lost");
+  if (id === "foundPage") renderList("myFoundList", getMyItems("found"), "found");
+  if (id === "sellPage")  renderList("mySellList",  getMyItems("sell"),  "sell");
+  if (id === "buyPage")   renderList("myBuyList",   getMyItems("buy"),   "buy");
 }
 
 function closePage(id) {
@@ -1074,8 +1172,14 @@ function closePage(id) {
   refreshCounts();
 }
 
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
 function renderList(containerId, items, type) {
   var container = document.getElementById(containerId);
+  if (!container) return;
   container.innerHTML = "";
   if (!items || items.length === 0) {
     var e = {
@@ -1089,24 +1193,26 @@ function renderList(containerId, items, type) {
   }
   var icons      = { lost:"🔍", found:"👜", sell:"🏷️", buy:"🛒" };
   var badgeClass = { lost:"badge-lost", found:"badge-found", sell:"badge-sell", buy:"badge-buy" };
+  var badgeLabel = { lost:"LOST", found:"FOUND", sell:"SELLING", buy:"BOUGHT" };
   items.forEach(function(item) {
     var card = document.createElement("div");
     card.className = "item-card";
-    var title    = item.title    || item.itemName  || item.name       || "Untitled";
-    var category = item.category || item.type      || item.itemType   || "";
-    var date     = item.date     || item.lostDate  || item.foundDate  || item.postedDate || item.createdAt || "";
-    var price    = item.price    || item.amount    || "";
-    var location = item.location || item.place     || item.foundPlace || item.lostPlace  || "";
-    var priceStr = (type==="sell" && price) ? " · ₹"+price : "";
-    var locStr   = location ? " · 📍"+location : "";
-    var catDate  = [category, date].filter(Boolean).join(" · ");
+    var title    = item.title    || item.itemName   || item.name       || item.item_name  || "Untitled";
+    var category = item.category || item.type       || item.itemType   || item.item_type  || "";
+    var date     = item.date     || item.lostDate   || item.foundDate  || item.postedDate ||
+                   item.createdAt|| item.created_at || item.reportedOn || "";
+    var price    = item.price    || item.amount     || item.sellingPrice || "";
+    var location = item.location || item.place      || item.foundPlace || item.lostPlace  ||
+                   item.area     || item.spot       || "";
+    var status   = item.status   || item.itemStatus || "";
+    var priceStr  = (type === "sell" && price) ? " · ₹" + price : "";
+    var locStr    = location ? " · 📍" + location : "";
+    var statusStr = status   ? " · "   + status   : "";
+    var meta = [category, date].filter(Boolean).join(" · ") + priceStr + locStr + statusStr;
     card.innerHTML =
-      '<div class="item-icon">'+(icons[type]||"📦")+'</div>' +
-      '<div class="item-info">' +
-        '<h4>'+title+'</h4>' +
-        '<p>'+catDate+priceStr+locStr+'</p>' +
-      '</div>' +
-      '<span class="item-badge '+badgeClass[type]+'">'+(type==="sell"?"SELLING":type.toUpperCase())+'</span>';
+      '<div class="item-icon">' + (icons[type] || "📦") + '</div>' +
+      '<div class="item-info"><h4>' + escapeHtml(title) + '</h4><p>' + escapeHtml(meta) + '</p></div>' +
+      '<span class="item-badge ' + badgeClass[type] + '">' + badgeLabel[type] + '</span>';
     container.appendChild(card);
   });
 }
@@ -1114,7 +1220,11 @@ function renderList(containerId, items, type) {
 function renderTxnList(containerId) {
   var container = document.getElementById(containerId);
   if (!container) return;
-  var txns = JSON.parse(localStorage.getItem("transactions") || "[]");
+  var txns = [];
+  ["transactions","txnHistory","txn_history","paymentHistory","payment_history"].forEach(function(k) {
+    if (txns.length) return;
+    try { var p = JSON.parse(localStorage.getItem(k) || "[]"); if (Array.isArray(p) && p.length) txns = p; } catch(e) {}
+  });
   if (!txns.length) {
     container.innerHTML = '<div class="empty-state" style="padding:30px 20px;"><div class="big-icon">📊</div><h4>No transactions yet</h4><p>Your payment history will appear here</p></div>';
     return;
@@ -1126,60 +1236,65 @@ function renderTxnList(containerId) {
     var isCredit = t.type === "credit";
     div.innerHTML =
       '<div class="txn-icon '+(isCredit?"credit":"debit")+'">'+(isCredit?"💰":"🛒")+'</div>' +
-      '<div class="txn-info"><h4>'+t.desc+'</h4><p>'+t.date+'</p></div>' +
-      '<div class="txn-amt '+(isCredit?"credit":"debit")+'">'+(isCredit?"+":"-")+'₹'+t.amount+'</div>';
+      '<div class="txn-info"><h4>'+escapeHtml(t.desc||t.description||"Transaction")+'</h4>' +
+      '<p>'+escapeHtml(t.date||t.createdAt||"")+'</p></div>' +
+      '<div class="txn-amt '+(isCredit?"credit":"debit")+'">'+(isCredit?"+":"-")+'₹'+(t.amount||0)+'</div>';
     container.appendChild(div);
   });
 }
 
 function saveProfile() {
-  var user = JSON.parse(localStorage.getItem("user") || "null");
+  var user = null;
+  try { user = JSON.parse(localStorage.getItem("user") || "null"); } catch(e) {}
   if (!user) return;
-
   var newName = document.getElementById("editName").value.trim();
   var deptSel = document.getElementById("editDept");
   var yearSel = document.getElementById("editYear");
+  var deptVal = deptSel.options[deptSel.selectedIndex] ? deptSel.options[deptSel.selectedIndex].text : "";
+  var yearVal = yearSel.options[yearSel.selectedIndex] ? yearSel.options[yearSel.selectedIndex].text : "";
+  if (deptVal === "Select Department") deptVal = "";
+  if (yearVal === "Select Year")       yearVal = "";
   var extras = {
-    email:  user.email,
+    email:  user.email || "",
     name:   newName,
     usn:    document.getElementById("editUSN").value.trim(),
-    dept:   deptSel.options[deptSel.selectedIndex].text,
-    year:   yearSel.options[yearSel.selectedIndex].text,
+    dept:   deptVal,
+    year:   yearVal,
     phone:  document.getElementById("editPhone").value.trim(),
     hostel: document.getElementById("editHostel").value.trim()
   };
-  if (extras.dept === "Select Department") extras.dept = "";
-  if (extras.year === "Select Year")       extras.year = "";
-
   localStorage.setItem("profileExtras", JSON.stringify(extras));
-  user.name = newName;
+  if (newName) user.name = newName;
   localStorage.setItem("user", JSON.stringify(user));
-
-  if (newName) document.getElementById("heroName").innerText = "👋 Hi, " + newName;
+  var displayName = newName || (user.email ? user.email.split("@")[0] : "Student");
+  document.getElementById("heroName").innerText = "👋 Hi, " + displayName;
+  document.getElementById("contactName").value  = displayName;
   var usnEl = document.getElementById("heroUSN");
-  if (extras.usn) { usnEl.innerText = extras.usn; usnEl.style.display = "inline-block"; } else { usnEl.style.display = "none"; }
+  if (extras.usn) { usnEl.innerText = extras.usn; usnEl.style.display = "inline-block"; }
+  else { usnEl.style.display = "none"; }
   var dy = [];
   if (extras.dept) dy.push(extras.dept);
   if (extras.year) dy.push(extras.year);
   document.getElementById("heroDeptYear").innerText = dy.join(" · ");
-
   showSaved("Profile saved successfully! ✅");
   closePage("editProfilePage");
 }
 
 function togglePayMethod(id) {
   document.querySelectorAll(".pay-method-card").forEach(function(c) {
-    if (c.id !== id) { c.classList.remove("active"); c.querySelector(".pm-body").style.display = "none"; }
+    if (c.id !== id) { c.classList.remove("active"); var b = c.querySelector(".pm-body"); if (b) b.style.display = "none"; }
   });
   var card = document.getElementById(id);
+  if (!card) return;
   var body = card.querySelector(".pm-body");
   var isOpen = card.classList.contains("active");
-  if (isOpen) { card.classList.remove("active"); body.style.display = "none"; }
-  else         { card.classList.add("active");    body.style.display = "block"; }
+  if (isOpen) { card.classList.remove("active"); if (body) body.style.display = "none"; }
+  else         { card.classList.add("active");    if (body) body.style.display = "block"; }
 }
 
 function savePayMethod(type) {
-  var pay = JSON.parse(localStorage.getItem("paymentData") || "{}");
+  var pay = {};
+  try { pay = JSON.parse(localStorage.getItem("paymentData") || "{}"); } catch(e) {}
   if (type === "upi") {
     var upi = document.getElementById("payUPI").value.trim();
     if (!upi) { alert("Please enter your UPI ID"); return; }
@@ -1191,10 +1306,10 @@ function savePayMethod(type) {
     var confirm = document.getElementById("payAccConfirm").value.trim();
     if (!acc || !confirm) { alert("Please fill all bank details"); return; }
     if (acc !== confirm)  { alert("Account numbers do not match!"); return; }
-    pay.holder   = document.getElementById("payHolder").value.trim();
-    pay.acc      = acc;
-    pay.ifsc     = document.getElementById("payIFSC").value.trim().toUpperCase();
-    pay.bankName = document.getElementById("payBank").value.trim();
+    pay.holder    = document.getElementById("payHolder").value.trim();
+    pay.acc       = acc;
+    pay.ifsc      = document.getElementById("payIFSC").value.trim().toUpperCase();
+    pay.bankName  = document.getElementById("payBank").value.trim();
     pay.bankLinked = true;
     document.getElementById("bankLinked").style.display = "inline-flex";
     showSaved("Bank details saved securely! ✅");
@@ -1233,17 +1348,21 @@ function logout() {
   }
 }
 
-// ── Listen for localStorage changes from other tabs/pages ──
 window.addEventListener("storage", function(e) {
-  var watchedKeys = ["lostItems","foundItems","sellItems","buyItems",
-                     "lost_items","found_items","sell_items","buy_items",
-                     "myLostItems","myFoundItems","mySellItems","myBuyItems",
-                     "reportedLost","reportedFound","listings","sellListings",
-                     "buyRequests","purchases"];
+  var watchedKeys = [
+    "lostItems","foundItems","sellItems","buyItems",
+    "lost_items","found_items","sell_items","buy_items",
+    "myLostItems","myFoundItems","mySellItems","myBuyItems",
+    "reportedLost","reportedFound","listings","sellListings",
+    "buyRequests","purchases","lostReports","foundReports",
+    "sell_listings","buy_requests","marketplace",
+    "sellPosts","buyPosts","wantedItems","wanted_items",
+    "allLostItems","allFoundItems","allSellItems","allBuyItems",
+    "user","profileExtras"
+  ];
   if (watchedKeys.indexOf(e.key) !== -1) { refreshCounts(); }
 });
 
-// ── Refresh counts when user navigates back to this page ──
 document.addEventListener("visibilitychange", function() {
   if (document.visibilityState === "visible") { refreshCounts(); }
 });
